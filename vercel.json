@@ -1,0 +1,33 @@
+{
+  "cleanUrls": false,
+  "rewrites": [
+    {
+      "source": "/",
+      "destination": "/frontend/index.html"
+    },
+    {
+      "source": "/index.html",
+      "destination": "/frontend/index.html"
+    },
+    {
+      "source": "/detect-member.html",
+      "destination": "/frontend/detect-member.html"
+    },
+    {
+      "source": "/register-member.html",
+      "destination": "/frontend/register-member.html"
+    },
+    {
+      "source": "/renew-membership.html",
+      "destination": "/frontend/renew-membership.html"
+    },
+    {
+      "source": "/member-list.html",
+      "destination": "/frontend/member-list.html"
+    },
+    {
+      "source": "/assets/:path*",
+      "destination": "/frontend/assets/:path*"
+    }
+  ]
+}
