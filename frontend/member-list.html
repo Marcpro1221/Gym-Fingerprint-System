@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Member List</title>
+  <link rel="icon" type="image/svg+xml" href="assets/icons/manlifting.svg">
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar" data-sidebar>
+      <div class="brand">
+        <div class="brand-mark"><img src="assets/icons/manlifting.svg" alt="GymFlow"></div>
+        <div class="brand-copy">
+          <h1>GymFlow</h1>
+          <p>Membership Command Center</p>
+        </div>
+      </div>
+
+      <div class="sidebar-card">
+        <small>Directory Coverage</small>
+        <strong>1,284</strong>
+        <p class="card-subtitle">Searchable static member directory with visual filter states only.</p>
+      </div>
+
+      <nav class="sidebar-nav">
+        <a class="nav-link" href="index.html"><span class="nav-icon"><img src="assets/icons/dashboard.svg" alt=""></span><span>Dashboard</span></a>
+        <a class="nav-link" href="register-member.html"><span class="nav-icon"><img src="assets/icons/register-member.svg" alt=""></span><span>Register New Member</span></a>
+        <a class="nav-link" href="renew-membership.html"><span class="nav-icon"><img src="assets/icons/renew-membership.svg" alt=""></span><span>Renew Membership</span></a>
+        <a class="nav-link active" href="member-list.html"><span class="nav-icon"><img src="assets/icons/member-list.svg" alt=""></span><span>Member List</span></a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <h3>Directory Note</h3>
+        <p>Search narrows the visible rows in-browser only. No real records are stored or updated.</p>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="page">
+        <header class="topbar">
+          <div class="topbar-left">
+            <button class="menu-toggle" data-menu-toggle aria-label="Toggle navigation">☰</button>
+            <div class="page-title">
+              <h2>Member List</h2>
+              <p>Responsive admin table with mock records, visual tags, and modal previews.</p>
+            </div>
+          </div>
+          <div class="topbar-actions">
+            <div class="search-shell">
+              <span>⌕</span>
+              <input type="text" placeholder="Search by member, plan, or status" data-member-search>
+            </div>
+            <a class="button hide-mobile" href="register-member.html">+ Register</a>
+          </div>
+        </header>
+
+        <section class="card">
+          <div class="card-head">
+            <div>
+              <h3 class="card-title">Member Directory</h3>
+              <p class="card-subtitle">Filter chips are demo-only style toggles; search filters the visible rows on this page.</p>
+            </div>
+            <div class="filter-row" data-filter-group>
+              <button class="filter-chip active" type="button" data-filter>All</button>
+              <button class="filter-chip" type="button" data-filter>Active</button>
+              <button class="filter-chip" type="button" data-filter>Renew</button>
+              <button class="filter-chip" type="button" data-filter>Single Day</button>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Member</th>
+                    <th>Plan</th>
+                    <th>Status</th>
+                    <th>Last Visit</th>
+                    <th>Expiry</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr data-member-row>
+                    <td data-label="Member">
+                      <div class="table-member">
+                        <div class="member-photo">NT</div>
+                        <div>
+                          <strong>Nicole Tan</strong>
+                          <div class="list-meta">GYM-1012</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td data-label="Plan">Monthly Payment</td>
+                    <td data-label="Status"><span class="tag tag-success">Active</span></td>
+                    <td data-label="Last Visit">Today, 5:29 PM</td>
+                    <td data-label="Expiry">May 19, 2026</td>
+                    <td data-label="Action"><button class="button-ghost" data-modal-open data-member-name="Nicole Tan" data-member-plan="Monthly Payment" data-member-status="Active" data-member-expiry="May 19, 2026">View</button></td>
+                  </tr>
+                  <tr data-member-row>
+                    <td data-label="Member">
+                      <div class="table-member">
+                        <div class="member-photo">JR</div>
+                        <div>
+                          <strong>Joaquin Ramos</strong>
+                          <div class="list-meta">GYM-1048</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td data-label="Plan">Monthly Payment</td>
+                    <td data-label="Status"><span class="tag tag-warning">Renew</span></td>
+                    <td data-label="Last Visit">Today, 5:31 PM</td>
+                    <td data-label="Expiry">Apr 20, 2026</td>
+                    <td data-label="Action"><a class="button-ghost" href="renew-membership.html">Renew</a></td>
+                  </tr>
+                  <tr data-member-row>
+                    <td data-label="Member">
+                      <div class="table-member">
+                        <div class="member-photo">AL</div>
+                        <div>
+                          <strong>Alyssa Luna</strong>
+                          <div class="list-meta">GYM-1104</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td data-label="Plan">Monthly Payment</td>
+                    <td data-label="Status"><span class="tag tag-warning">Due Soon</span></td>
+                    <td data-label="Last Visit">Yesterday, 6:02 PM</td>
+                    <td data-label="Expiry">Apr 28, 2026</td>
+                    <td data-label="Action"><button class="button-ghost" data-modal-open data-member-name="Alyssa Luna" data-member-plan="Monthly Payment" data-member-status="Renewal due soon" data-member-expiry="April 28, 2026">View</button></td>
+                  </tr>
+                  <tr data-member-row>
+                    <td data-label="Member">
+                      <div class="table-member">
+                        <div class="member-photo">MD</div>
+                        <div>
+                          <strong>Marcus Delos Santos</strong>
+                          <div class="list-meta">GYM-0990</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td data-label="Plan">Monthly Payment</td>
+                    <td data-label="Status"><span class="tag tag-success">Active</span></td>
+                    <td data-label="Last Visit">Today, 5:42 PM</td>
+                    <td data-label="Expiry">Jun 11, 2026</td>
+                    <td data-label="Action"><button class="button-ghost" data-modal-open data-member-name="Marcus Delos Santos" data-member-plan="Monthly Payment" data-member-status="Active" data-member-expiry="June 11, 2026">View</button></td>
+                  </tr>
+                  <tr data-member-row>
+                    <td data-label="Member">
+                      <div class="table-member">
+                        <div class="member-photo">BG</div>
+                        <div>
+                          <strong>Bea Gutierrez</strong>
+                          <div class="list-meta">GYM-0872</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td data-label="Plan">Single Day Access</td>
+                    <td data-label="Status"><span class="tag tag-primary">Day Pass</span></td>
+                    <td data-label="Last Visit">Today, 5:38 PM</td>
+                    <td data-label="Expiry">Apr 21, 2026</td>
+                    <td data-label="Action"><button class="button-ghost" data-modal-open data-member-name="Bea Gutierrez" data-member-plan="Single Day Access" data-member-status="Valid until 9:00 PM" data-member-expiry="April 21, 2026">View</button></td>
+                  </tr>
+                  <tr data-member-row>
+                    <td data-label="Member">
+                      <div class="table-member">
+                        <div class="member-photo">KT</div>
+                        <div>
+                          <strong>Karl Torres</strong>
+                          <div class="list-meta">GYM-1135</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td data-label="Plan">Monthly Payment</td>
+                    <td data-label="Status"><span class="tag tag-danger">On Hold</span></td>
+                    <td data-label="Last Visit">Apr 14, 2026</td>
+                    <td data-label="Expiry">Apr 18, 2026</td>
+                    <td data-label="Action"><button class="button-ghost" data-modal-open data-member-name="Karl Torres" data-member-plan="Monthly Payment" data-member-status="On hold" data-member-expiry="April 18, 2026">View</button></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="empty-state" data-empty-state hidden>
+              No members match the current search.
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <div class="modal" data-modal>
+    <div class="modal-panel">
+      <div class="modal-head">
+        <div>
+          <h3 data-modal-title>Member Snapshot</h3>
+          <p>UI preview for directory actions.</p>
+        </div>
+        <button class="close-button" type="button" data-modal-close aria-label="Close modal">✕</button>
+      </div>
+      <div class="modal-body" data-modal-body></div>
+      <div class="modal-foot" data-modal-foot>
+        <button class="button-ghost" type="button" data-modal-close>Close</button>
+        <a class="button" href="renew-membership.html">Renew</a>
+      </div>
+    </div>
+  </div>
+
+  <script src="assets/js/app.js"></script>
+</body>
+</html>

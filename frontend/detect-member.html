@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Detect Member</title>
+  <link rel="icon" type="image/svg+xml" href="assets/icons/manlifting.svg">
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar" data-sidebar>
+      <div class="brand">
+        <div class="brand-mark"><img src="assets/icons/manlifting.svg" alt="GymFlow"></div>
+        <div class="brand-copy">
+          <h1>GymFlow</h1>
+          <p>Membership Command Center</p>
+        </div>
+      </div>
+
+      <div class="sidebar-card">
+        <small>Scan Station</small>
+        <strong>Online</strong>
+        <p class="card-subtitle">Mock fingerprint scanner is set to demo mode only.</p>
+      </div>
+
+      <nav class="sidebar-nav">
+        <a class="nav-link" href="index.html"><span class="nav-icon"><img src="assets/icons/dashboard.svg" alt=""></span><span>Dashboard</span></a>
+        <a class="nav-link" href="register-member.html"><span class="nav-icon"><img src="assets/icons/register-member.svg" alt=""></span><span>Register New Member</span></a>
+        <a class="nav-link" href="renew-membership.html"><span class="nav-icon"><img src="assets/icons/renew-membership.svg" alt=""></span><span>Renew Membership</span></a>
+        <a class="nav-link" href="member-list.html"><span class="nav-icon"><img src="assets/icons/member-list.svg" alt=""></span><span>Member List</span></a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <h3>Scan Guide</h3>
+        <p>Use the action button to rotate through the full flow: ready, scanning, member found, non-member, and expired membership.</p>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="page">
+        <header class="topbar">
+          <div class="topbar-left">
+            <button class="menu-toggle" data-menu-toggle aria-label="Toggle navigation">☰</button>
+            <div class="page-title">
+              <h2>Detect Member</h2>
+              <p>Fingerprint scan view that routes staff to member access, new registration, or renewal handling.</p>
+            </div>
+          </div>
+          <div class="topbar-actions">
+            <div class="search-shell">
+              <span>⌕</span>
+              <input type="text" placeholder="Search member ID or last scan">
+            </div>
+          </div>
+        </header>
+
+        <section class="section-banner">
+          <h3>Fingerprint Check-In Simulation</h3>
+          <p>This screen stays offline and UI-only. Each scan state shows the correct front desk label and opens a popup dialog for the next action.</p>
+        </section>
+
+        <section class="scan-shell" style="margin-top: 20px;">
+          <article class="card">
+            <div class="card-body">
+              <div class="scanner">
+                <div class="scan-visual">
+                  <div class="scan-line"></div>
+                  <div class="scan-center"></div>
+                </div>
+              </div>
+              <div class="actions-row" style="margin-top: 20px;">
+                <button class="button" type="button" data-scan-trigger>Cycle Scan State</button>
+                <span class="tag tag-primary" data-scan-label>Ready to scan</span>
+              </div>
+              <p class="helper" style="margin-top: 14px;">Demo order: ready → scanning → member detected → not a member → renew membership</p>
+            </div>
+          </article>
+
+          <article class="scan-status">
+            <div class="status-card status-output active" data-scan-output="ready">
+              <small class="sidebar-label">Ready</small>
+              <h4>Place finger on scanner</h4>
+              <p>Waiting for member input. Access lane idle and prepared for the next scan.</p>
+            </div>
+
+            <div class="status-card status-output" data-scan-output="scanning">
+              <small class="sidebar-label">Scanning</small>
+              <h4>Analyzing fingerprint</h4>
+              <p>Verifying stored biometric profile in this UI-only mock sequence.</p>
+            </div>
+
+            <div class="status-card status-output state-allowed" data-scan-output="member">
+              <small class="sidebar-label">Matched Member</small>
+              <span class="state-badge allowed">Access Allowed</span>
+              <h4>Member found: Nicole Tan</h4>
+              <p>Monthly Payment membership is active until May 19, 2026. Access is allowed until 9:00 PM.</p>
+              <div class="actions-row" style="margin-top: 14px;">
+                <button class="button-ghost" data-modal-open data-member-name="Nicole Tan" data-member-plan="Monthly Payment" data-member-status="Active member" data-member-expiry="May 19, 2026">Open Member Card</button>
+                <a class="button-secondary" href="member-list.html">Go to Member List</a>
+              </div>
+            </div>
+
+            <div class="status-card status-output state-denied" data-scan-output="nonmember">
+              <small class="sidebar-label">No Match</small>
+              <span class="state-badge denied">Not Registered</span>
+              <h4>Person is not a member</h4>
+              <p>No member profile was found from the fingerprint scan. Direct the person to the registration page.</p>
+              <div class="actions-row" style="margin-top: 14px;">
+                <a class="button" href="register-member.html">Open Registration Page</a>
+              </div>
+            </div>
+
+            <div class="status-card status-output state-expired" data-scan-output="expired">
+              <small class="sidebar-label">Expired</small>
+              <span class="state-badge expired">Renew Membership</span>
+              <h4>Renew membership label required</h4>
+              <p>Joaquin Ramos was matched, but the Monthly Payment membership is expired. Show the renew dialog before access is granted.</p>
+              <div class="actions-row" style="margin-top: 14px;">
+                <a class="button" href="renew-membership.html">Open Renewal Page</a>
+                <button class="button-ghost" data-modal-open data-member-name="Joaquin Ramos" data-member-plan="Monthly Payment" data-member-status="Expired membership" data-member-expiry="April 20, 2026">View Details</button>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-body">
+                <small class="sidebar-label">Recent Scan Feed</small>
+                <div class="list" style="margin-top: 12px;">
+                  <div class="list-row">
+                    <div>
+                      <strong>5:42 PM</strong>
+                      <div class="list-meta">Marcus Delos Santos</div>
+                    </div>
+                    <span class="tag tag-success">Granted</span>
+                  </div>
+                  <div class="list-row">
+                    <div>
+                      <strong>5:31 PM</strong>
+                      <div class="list-meta">Joaquin Ramos</div>
+                    </div>
+                    <span class="tag tag-warning">Renew Label</span>
+                  </div>
+                  <div class="list-row">
+                    <div>
+                      <strong>5:19 PM</strong>
+                      <div class="list-meta">Guest Trial Visitor</div>
+                    </div>
+                    <span class="tag tag-primary">Register</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </article>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <div class="modal" data-modal>
+    <div class="modal-panel">
+      <div class="modal-head">
+        <div>
+          <h3 data-modal-title>Member Snapshot</h3>
+          <p>Visual modal only for the scanner demo.</p>
+        </div>
+        <button class="close-button" type="button" data-modal-close aria-label="Close modal">✕</button>
+      </div>
+      <div class="modal-body" data-modal-body></div>
+      <div class="modal-foot" data-modal-foot>
+        <button class="button-ghost" type="button" data-modal-close>Close</button>
+        <a class="button" href="renew-membership.html">Continue</a>
+      </div>
+    </div>
+  </div>
+
+  <script src="assets/js/app.js"></script>
+</body>
+</html>

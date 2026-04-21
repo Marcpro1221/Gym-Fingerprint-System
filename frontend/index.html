@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gym Admin Dashboard</title>
+  <link rel="icon" type="image/svg+xml" href="assets/icons/manlifting.svg">
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar" data-sidebar>
+      <div class="brand">
+        <div class="brand-mark"><img src="assets/icons/manlifting.svg" alt="GymFlow"></div>
+        <div class="brand-copy">
+          <h1>GymFlow</h1>
+          <p>Membership Command Center</p>
+        </div>
+      </div>
+
+      <div class="sidebar-card">
+        <small>Today's Foot Traffic</small>
+        <strong>148</strong>
+        <p class="card-subtitle">Strong evening activity with a 12% rise from Monday.</p>
+      </div>
+
+      <nav class="sidebar-nav">
+        <a class="nav-link active" href="index.html"><span class="nav-icon"><img src="assets/icons/dashboard.svg" alt=""></span><span>Dashboard</span></a>
+        <a class="nav-link" href="register-member.html"><span class="nav-icon"><img src="assets/icons/register-member.svg" alt=""></span><span>Register New Member</span></a>
+        <a class="nav-link" href="renew-membership.html"><span class="nav-icon"><img src="assets/icons/renew-membership.svg" alt=""></span><span>Renew Membership</span></a>
+        <a class="nav-link" href="member-list.html"><span class="nav-icon"><img src="assets/icons/member-list.svg" alt=""></span><span>Member List</span></a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <h3>Studio Pulse</h3>
+        <p>Fingerprint scans should immediately branch to member access, new registration, or renewal handling.</p>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="page">
+        <header class="topbar">
+          <div class="topbar-left">
+            <button class="menu-toggle" data-menu-toggle aria-label="Toggle navigation">☰</button>
+            <div class="page-title">
+              <h2>Dashboard</h2>
+              <p>Fingerprint detection is the main front desk action, with direct paths for member match, registration, and renewal.</p>
+            </div>
+          </div>
+
+          <div class="topbar-actions">
+            <div class="search-shell">
+              <span>⌕</span>
+              <input type="text" placeholder="Search dashboards, members, plans">
+            </div>
+            <a class="button hide-mobile" href="register-member.html">+ Add Member</a>
+          </div>
+        </header>
+
+        <div class="hours-note" style="margin-bottom: 20px;">Open daily • Gym closes at 9:00 PM</div>
+
+        <section class="section-banner">
+          <h3>Detect Fingerprint</h3>
+          <p>The dashboard now starts with the fingerprint scan workflow. Staff should detect the fingerprint first, then continue with member entry, new registration, or renewal based on the result label.</p>
+        </section>
+
+        <section class="scan-shell" style="margin-top: 20px;">
+          <article class="card">
+            <div class="card-body">
+              <div class="scanner">
+                <div class="scan-visual">
+                  <div class="scan-line"></div>
+                  <div class="scan-center"></div>
+                </div>
+              </div>
+              <div class="actions-row" style="margin-top: 20px;">
+                <button class="button" type="button" data-scan-trigger>Cycle Scan State</button>
+                <span class="tag tag-primary" data-scan-label>Ready to scan</span>
+              </div>
+              <p class="helper" style="margin-top: 14px;">Demo order: ready → scanning → member detected → not a member → renew membership</p>
+            </div>
+          </article>
+
+          <article class="scan-status compact">
+            <div class="status-card status-output active" data-scan-output="ready">
+              <small class="sidebar-label">Fingerprint Station</small>
+              <h4>Waiting for fingerprint</h4>
+              <p>Place a finger on the scanner to begin the member lookup flow.</p>
+            </div>
+
+            <div class="status-card status-output" data-scan-output="scanning">
+              <small class="sidebar-label">Scan Progress</small>
+              <h4>Reading fingerprint data</h4>
+              <p>The UI is checking whether the fingerprint belongs to a registered member.</p>
+            </div>
+
+            <div class="status-card status-output state-allowed" data-scan-output="member">
+              <small class="sidebar-label">Fingerprint Data</small>
+              <span class="state-badge allowed">Access Allowed</span>
+              <h4>Nicole Tan</h4>
+              <p>Match found. Monthly Payment is active until May 19, 2026. Access allowed until 9:00 PM.</p>
+              <div class="actions-row" style="margin-top: 14px;">
+                <button class="button-ghost" data-modal-open data-member-name="Nicole Tan" data-member-plan="Monthly Payment" data-member-status="Fingerprint matched" data-member-expiry="May 19, 2026">Open Member Data</button>
+                <a class="button-secondary" href="member-list.html">View Member List</a>
+              </div>
+            </div>
+
+            <div class="status-card status-output state-denied" data-scan-output="nonmember">
+              <small class="sidebar-label">Fingerprint Data</small>
+              <span class="state-badge denied">Not Registered</span>
+              <h4>No member record</h4>
+              <p>No stored member profile matches this fingerprint. Continue with new member registration.</p>
+              <div class="actions-row" style="margin-top: 14px;">
+                <a class="button" href="register-member.html">Register New Member</a>
+              </div>
+            </div>
+
+            <div class="status-card status-output state-expired" data-scan-output="expired">
+              <small class="sidebar-label">Fingerprint Data</small>
+              <span class="state-badge expired">Renew Membership</span>
+              <h4>Joaquin Ramos</h4>
+              <p>Fingerprint matched, but the Monthly Payment membership is expired. Show the renew membership popup and complete renewal first.</p>
+              <div class="actions-row" style="margin-top: 14px;">
+                <a class="button" href="renew-membership.html">Renew Membership</a>
+                <button class="button-ghost" data-modal-open data-member-name="Joaquin Ramos" data-member-plan="Monthly Payment" data-member-status="Expired after fingerprint match" data-member-expiry="April 20, 2026">View Member Data</button>
+              </div>
+            </div>
+
+            <div class="card status-output active" data-scan-output="ready">
+              <div class="card-body">
+                <small class="sidebar-label">Fingerprint Member Data</small>
+                <div class="status-card" style="margin-top: 12px;">
+                  <h4>Waiting for member data</h4>
+                  <p>Scan a fingerprint first to load the member profile or the non-member registration prompt.</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="card status-output" data-scan-output="scanning">
+              <div class="card-body">
+                <small class="sidebar-label">Fingerprint Member Data</small>
+                <div class="status-card" style="margin-top: 12px;">
+                  <h4>Looking up fingerprint</h4>
+                  <p>Reading biometric data and checking whether this person already has a stored member profile.</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="card status-output state-allowed" data-scan-output="member">
+              <div class="card-body">
+                <small class="sidebar-label">Fingerprint Member Data</small>
+                <div class="list" style="margin-top: 12px;">
+                  <div class="list-row">
+                    <div>
+                      <strong>Member Name</strong>
+                      <div class="list-meta">Nicole Tan</div>
+                    </div>
+                    <span class="tag tag-success">Active</span>
+                  </div>
+                  <div class="list-row">
+                    <div>
+                      <strong>Member ID</strong>
+                      <div class="list-meta">GYM-1012</div>
+                    </div>
+                    <span class="tag tag-success">Matched</span>
+                  </div>
+                  <div class="list-row">
+                    <div>
+                      <strong>Membership Type</strong>
+                      <div class="list-meta">Monthly Payment</div>
+                    </div>
+                    <span class="tag tag-primary">Current</span>
+                  </div>
+                  <div class="list-row">
+                    <div>
+                      <strong>Last Successful Entry</strong>
+                      <div class="list-meta">Today, 5:29 PM</div>
+                    </div>
+                    <span class="tag tag-success">Granted</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="card status-output state-denied" data-scan-output="nonmember">
+              <div class="card-body">
+                <small class="sidebar-label">Fingerprint Member Data</small>
+                <div class="status-card" style="margin-top: 12px;">
+                  <small class="sidebar-label">Not a Member</small>
+                  <h4>No registered member profile</h4>
+                  <p>This fingerprint does not match any saved member record. Continue to registration to create a new member profile.</p>
+                  <div class="actions-row" style="margin-top: 14px;">
+                    <a class="button" href="register-member.html">Register New Member</a>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="card status-output state-expired" data-scan-output="expired">
+              <div class="card-body">
+                <small class="sidebar-label">Fingerprint Member Data</small>
+                <div class="list" style="margin-top: 12px;">
+                  <div class="list-row">
+                    <div>
+                      <strong>Member Name</strong>
+                      <div class="list-meta">Joaquin Ramos</div>
+                    </div>
+                    <span class="tag tag-warning">Expired</span>
+                  </div>
+                  <div class="list-row">
+                    <div>
+                      <strong>Member ID</strong>
+                      <div class="list-meta">GYM-1048</div>
+                    </div>
+                    <span class="tag tag-warning">Matched</span>
+                  </div>
+                  <div class="list-row">
+                    <div>
+                      <strong>Membership Type</strong>
+                      <div class="list-meta">Monthly Payment</div>
+                    </div>
+                    <span class="tag tag-warning">Renew</span>
+                  </div>
+                  <div class="list-row">
+                    <div>
+                      <strong>Last Successful Entry</strong>
+                      <div class="list-meta">April 19, 2026 • 6:11 PM</div>
+                    </div>
+                    <span class="tag tag-danger">Blocked</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </article>
+        </section>
+
+        <section class="grid grid-stats">
+          <article class="card stat-card">
+            <div class="card-body">
+              <div class="stat-top">
+                <span class="sidebar-label">Active Members</span>
+                <span class="stat-chip success">+8.4%</span>
+              </div>
+              <h3 class="stat-value">1,284</h3>
+              <p class="stat-copy">Monthly Payment members currently in good standing in this demo dashboard.</p>
+            </div>
+          </article>
+
+          <article class="card stat-card">
+            <div class="card-body">
+              <div class="stat-top">
+                <span class="sidebar-label">Check-Ins Today</span>
+                <span class="stat-chip primary">148 scans</span>
+              </div>
+              <h3 class="stat-value">73%</h3>
+              <p class="stat-copy">Of the normal weekday scan volume reached before the 9:00 PM close.</p>
+            </div>
+          </article>
+
+          <article class="card stat-card">
+            <div class="card-body">
+              <div class="stat-top">
+                <span class="sidebar-label">Due for Renewal</span>
+                <span class="stat-chip warning">32 soon</span>
+              </div>
+              <h3 class="stat-value">96</h3>
+              <p class="stat-copy">Members who will need a renew label soon after fingerprint detection.</p>
+            </div>
+          </article>
+
+          <article class="card stat-card">
+            <div class="card-body">
+              <div class="stat-top">
+                <span class="sidebar-label">Pending Issues</span>
+                <span class="stat-chip danger">Attention</span>
+              </div>
+              <h3 class="stat-value">11</h3>
+              <p class="stat-copy">No match records, expired memberships, and incomplete registration details.</p>
+            </div>
+          </article>
+        </section>
+
+        <section class="grid grid-main" style="margin-top: 20px;">
+          <article class="card">
+            <div class="card-head">
+              <div>
+                <h3 class="card-title">Weekly Attendance Mix</h3>
+                <p class="card-subtitle">Static chart showing fingerprint matches and new visitor checks.</p>
+              </div>
+              <span class="tag tag-primary">Last 7 days</span>
+            </div>
+            <div class="card-body">
+              <div class="chart-bars">
+                <div class="bar-group"><div class="bar-stack"><div class="bar" style="height: 42%;"></div><div class="bar alt" style="height: 18%;"></div></div><div class="bar-label">Mon</div></div>
+                <div class="bar-group"><div class="bar-stack"><div class="bar" style="height: 62%;"></div><div class="bar alt" style="height: 20%;"></div></div><div class="bar-label">Tue</div></div>
+                <div class="bar-group"><div class="bar-stack"><div class="bar" style="height: 74%;"></div><div class="bar alt" style="height: 28%;"></div></div><div class="bar-label">Wed</div></div>
+                <div class="bar-group"><div class="bar-stack"><div class="bar" style="height: 58%;"></div><div class="bar alt" style="height: 17%;"></div></div><div class="bar-label">Thu</div></div>
+                <div class="bar-group"><div class="bar-stack"><div class="bar" style="height: 80%;"></div><div class="bar alt" style="height: 24%;"></div></div><div class="bar-label">Fri</div></div>
+                <div class="bar-group"><div class="bar-stack"><div class="bar" style="height: 68%;"></div><div class="bar alt" style="height: 21%;"></div></div><div class="bar-label">Sat</div></div>
+                <div class="bar-group"><div class="bar-stack"><div class="bar" style="height: 48%;"></div><div class="bar alt" style="height: 12%;"></div></div><div class="bar-label">Sun</div></div>
+              </div>
+            </div>
+          </article>
+
+          <article class="card">
+            <div class="card-head">
+              <div>
+                <h3 class="card-title">Fingerprint Member Data</h3>
+                <p class="card-subtitle">Latest matched member details shown after a successful fingerprint scan.</p>
+              </div>
+            </div>
+            <div class="card-body">
+              <div class="member-highlight">
+                <div class="member-photo">NT</div>
+                <div class="member-copy">
+                  <h4>Nicole Tan</h4>
+                  <p>Fingerprint match • Monthly Payment • Expires May 19, 2026</p>
+                </div>
+                <button class="button-ghost" data-modal-open data-member-name="Nicole Tan" data-member-plan="Monthly Payment" data-member-status="Fingerprint matched" data-member-expiry="May 19, 2026">View</button>
+              </div>
+
+              <div class="metric-inline">
+                <span class="list-meta">Member ID</span>
+                <strong>GYM-1012</strong>
+              </div>
+              <div class="progress"><span style="width: 90%;"></span></div>
+
+              <div class="metric-inline">
+                <span class="list-meta">Fingerprint confidence</span>
+                <strong>98%</strong>
+              </div>
+              <div class="progress"><span style="width: 98%;"></span></div>
+
+              <div class="metric-inline">
+                <span class="list-meta">Access status</span>
+                <strong>Granted</strong>
+              </div>
+              <div class="progress"><span style="width: 82%;"></span></div>
+            </div>
+          </article>
+        </section>
+
+        <section class="grid grid-two" style="margin-top: 20px;">
+          <article class="card">
+            <div class="card-head">
+              <div>
+                <h3 class="card-title">Recent Check-Ins</h3>
+                <p class="card-subtitle">Mock members entering the gym floor.</p>
+              </div>
+              <a class="button-ghost" href="member-list.html">Open List</a>
+            </div>
+            <div class="card-body list">
+              <div class="list-row">
+                <div>
+                  <strong>Marcus Delos Santos</strong>
+                  <div class="list-meta">Monthly Payment • 5:42 PM</div>
+                </div>
+                <span class="tag tag-success">Granted</span>
+              </div>
+              <div class="list-row">
+                <div>
+                  <strong>Bea Gutierrez</strong>
+                  <div class="list-meta">Single Day Access • 5:38 PM</div>
+                </div>
+                <span class="tag tag-primary">Checked In</span>
+              </div>
+              <div class="list-row">
+                <div>
+                  <strong>Joaquin Ramos</strong>
+                  <div class="list-meta">Monthly Payment • 5:31 PM</div>
+                </div>
+                <span class="tag tag-warning">Renew Label</span>
+              </div>
+              <div class="list-row">
+                <div>
+                  <strong>Nicole Tan</strong>
+                  <div class="list-meta">Monthly Payment • 5:29 PM</div>
+                </div>
+                <span class="tag tag-success">Granted</span>
+              </div>
+            </div>
+          </article>
+
+          <article class="card">
+            <div class="card-head">
+              <div>
+                <h3 class="card-title">Membership Signals</h3>
+                <p class="card-subtitle">Static KPI blocks for dashboard presentation.</p>
+              </div>
+            </div>
+            <div class="card-body">
+              <div class="status-card">
+                <small class="sidebar-label">Most Popular Plan</small>
+                <h4>Monthly Payment</h4>
+                <p>Most members in the mock directory are enrolled under the monthly plan.</p>
+              </div>
+              <div class="status-card" style="margin-top: 14px;">
+                <small class="sidebar-label">Next Campaign</small>
+                <h4>Fast Scan Registration</h4>
+                <p>Guide non-members directly from the scan result to the registration page.</p>
+              </div>
+              <div class="status-card" style="margin-top: 14px;">
+                <small class="sidebar-label">Retention Trend</small>
+                <h4>Upward</h4>
+                <p>Demo trendline indicates better renew handling for expired scan matches.</p>
+              </div>
+            </div>
+          </article>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <div class="modal" data-modal>
+    <div class="modal-panel">
+      <div class="modal-head">
+        <div>
+          <h3 data-modal-title>Member Snapshot</h3>
+          <p>Quick visual overlay for the demo interface.</p>
+        </div>
+        <button class="close-button" type="button" data-modal-close aria-label="Close modal">✕</button>
+      </div>
+      <div class="modal-body" data-modal-body></div>
+      <div class="modal-foot" data-modal-foot>
+        <button class="button-ghost" type="button" data-modal-close>Close</button>
+        <a class="button" href="renew-membership.html">Renew Membership</a>
+      </div>
+    </div>
+  </div>
+
+  <script src="assets/js/app.js"></script>
+</body>
+</html>

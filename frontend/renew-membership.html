@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Renew Membership</title>
+  <link rel="icon" type="image/svg+xml" href="assets/icons/manlifting.svg">
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar" data-sidebar>
+      <div class="brand">
+        <div class="brand-mark"><img src="assets/icons/manlifting.svg" alt="GymFlow"></div>
+        <div class="brand-copy">
+          <h1>GymFlow</h1>
+          <p>Membership Command Center</p>
+        </div>
+      </div>
+
+      <div class="sidebar-card">
+        <small>Renewal Campaign</small>
+        <strong>84%</strong>
+        <p class="card-subtitle">Demo conversion rate for members who renewed before expiry.</p>
+      </div>
+
+      <nav class="sidebar-nav">
+        <a class="nav-link" href="index.html"><span class="nav-icon"><img src="assets/icons/dashboard.svg" alt=""></span><span>Dashboard</span></a>
+        <a class="nav-link" href="register-member.html"><span class="nav-icon"><img src="assets/icons/register-member.svg" alt=""></span><span>Register New Member</span></a>
+        <a class="nav-link active" href="renew-membership.html"><span class="nav-icon"><img src="assets/icons/renew-membership.svg" alt=""></span><span>Renew Membership</span></a>
+        <a class="nav-link" href="member-list.html"><span class="nav-icon"><img src="assets/icons/member-list.svg" alt=""></span><span>Member List</span></a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <h3>Renewal Prompt</h3>
+        <p>Use this page when the fingerprint scan matches a person whose membership has already expired.</p>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="page">
+        <header class="topbar">
+          <div class="topbar-left">
+            <button class="menu-toggle" data-menu-toggle aria-label="Toggle navigation">☰</button>
+            <div class="page-title">
+              <h2>Renew Membership</h2>
+              <p>Renew a member after the scan shows an expired membership label.</p>
+            </div>
+          </div>
+          <div class="topbar-actions">
+            <a class="button-ghost" href="detect-member.html">Back to Scanner</a>
+          </div>
+        </header>
+
+        <section class="grid grid-two">
+          <article class="card">
+            <div class="card-head">
+              <div>
+                <h3 class="card-title">Member Renewal Summary</h3>
+                <p class="card-subtitle">Mock profile shown for a member nearing plan expiration.</p>
+              </div>
+              <span class="tag tag-warning">Expires Tomorrow</span>
+            </div>
+            <div class="card-body">
+              <div class="member-highlight">
+                <div class="member-photo">JR</div>
+                <div class="member-copy">
+                  <h4>Joaquin Ramos</h4>
+                  <p>Monthly Payment • Member ID GYM-1048</p>
+                </div>
+              </div>
+
+              <div class="grid grid-two" style="margin-top: 18px;">
+                <div class="status-card">
+                  <small class="sidebar-label">Current Plan</small>
+                  <h4>Monthly Payment</h4>
+                  <p>Standard monthly member profile detected from the scan flow.</p>
+                </div>
+                <div class="status-card">
+                  <small class="sidebar-label">Expiry Date</small>
+                  <h4>April 22, 2026</h4>
+                  <p>Prompt staff to secure renewal before access interruption.</p>
+                </div>
+              </div>
+
+              <div class="metric-inline" style="margin-top: 18px;">
+                <span class="list-meta">Visits in current cycle</span>
+                <strong>16</strong>
+              </div>
+              <div class="metric-inline">
+                <span class="list-meta">Closing time reminder</span>
+                <strong>9:00 PM</strong>
+              </div>
+              <div class="metric-inline">
+                <span class="list-meta">Suggested renewal</span>
+                <strong>Monthly Payment</strong>
+              </div>
+            </div>
+          </article>
+
+          <article class="card">
+            <div class="card-head">
+              <div>
+                <h3 class="card-title">Renewal Options</h3>
+                <p class="card-subtitle">Select a package and mock payment setup for the UI demo.</p>
+              </div>
+            </div>
+            <div class="card-body">
+              <form data-demo-form>
+                <div class="pricing-grid" data-plan-group>
+                  <div class="pricing-card" data-plan-card>
+                    <span class="tag tag-success">Renew</span>
+                    <h4>Monthly Payment</h4>
+                    <p>Restore standard monthly membership access until the next billing cycle.</p>
+                    <strong>P1,999</strong>
+                  </div>
+                  <div class="pricing-card active" data-plan-card>
+                    <span class="tag tag-primary">Alternative</span>
+                    <h4>Single Day Access</h4>
+                    <p>Issue a one-day access pass for the current day, valid until 9:00 PM.</p>
+                    <strong>P250</strong>
+                  </div>
+                </div>
+                <p class="helper" style="margin-top: 14px;">This demo only shows two options: Monthly Payment and Single Day Access.</p>
+
+                <div class="form-grid" style="margin-top: 18px;">
+                  <div class="field">
+                    <label for="payment-mode">Payment Method</label>
+                    <select id="payment-mode">
+                      <option>Cash</option>
+                      <option>Card</option>
+                      <option>E-Wallet</option>
+                      <option>Bank Transfer</option>
+                    </select>
+                  </div>
+                  <div class="field">
+                    <label for="receipt-no">Receipt Number</label>
+                    <input id="receipt-no" type="text" placeholder="RCPT-2026-0419">
+                  </div>
+                  <div class="field field-span-2">
+                    <label for="renew-notes">Desk Notes</label>
+                    <textarea id="renew-notes" placeholder="Add promo details, approval remarks, or renewal script notes"></textarea>
+                  </div>
+                </div>
+
+                <div class="actions-row" style="margin-top: 18px;">
+                  <button class="button" type="submit">Process Demo Renewal</button>
+                  <button class="button-ghost" type="button" data-modal-open data-member-name="Joaquin Ramos" data-member-plan="Monthly Payment" data-member-status="Pending renewal demo" data-member-expiry="May 22, 2026">Preview Member Update</button>
+                </div>
+                <p class="helper" data-form-message style="margin-top: 12px;"></p>
+              </form>
+            </div>
+          </article>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <div class="modal" data-modal>
+    <div class="modal-panel">
+      <div class="modal-head">
+        <div>
+          <h3 data-modal-title>Renewal Preview</h3>
+          <p>Preview state for a static membership update.</p>
+        </div>
+        <button class="close-button" type="button" data-modal-close aria-label="Close modal">✕</button>
+      </div>
+      <div class="modal-body" data-modal-body></div>
+      <div class="modal-foot" data-modal-foot>
+        <button class="button-ghost" type="button" data-modal-close>Close</button>
+        <a class="button" href="member-list.html">Open Member List</a>
+      </div>
+    </div>
+  </div>
+
+  <script src="assets/js/app.js"></script>
+</body>
+</html>

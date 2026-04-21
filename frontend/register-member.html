@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Register New Member</title>
+  <link rel="icon" type="image/svg+xml" href="assets/icons/manlifting.svg">
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar" data-sidebar>
+      <div class="brand">
+        <div class="brand-mark"><img src="assets/icons/manlifting.svg" alt="GymFlow"></div>
+        <div class="brand-copy">
+          <h1>GymFlow</h1>
+          <p>Membership Command Center</p>
+        </div>
+      </div>
+
+      <div class="sidebar-card">
+        <small>Registration Queue</small>
+        <strong>7</strong>
+        <p class="card-subtitle">Prospects waiting for consult, sign-up, or payment follow-up.</p>
+      </div>
+
+      <nav class="sidebar-nav">
+        <a class="nav-link" href="index.html"><span class="nav-icon"><img src="assets/icons/dashboard.svg" alt=""></span><span>Dashboard</span></a>
+        <a class="nav-link active" href="register-member.html"><span class="nav-icon"><img src="assets/icons/register-member.svg" alt=""></span><span>Register New Member</span></a>
+        <a class="nav-link" href="renew-membership.html"><span class="nav-icon"><img src="assets/icons/renew-membership.svg" alt=""></span><span>Renew Membership</span></a>
+        <a class="nav-link" href="member-list.html"><span class="nav-icon"><img src="assets/icons/member-list.svg" alt=""></span><span>Member List</span></a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <p>Use this page when the fingerprint scan shows no member record and the person needs to be enrolled.</p>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="page">
+        <header class="topbar">
+          <div class="topbar-left">
+            <button class="menu-toggle" data-menu-toggle aria-label="Toggle navigation">☰</button>
+            <div class="page-title">
+              <h2>Register New Member</h2>
+              <p>Register a new person after a fingerprint scan returns no member match.</p>
+            </div>
+          </div>
+          <div class="topbar-actions">
+            <a class="button-ghost" href="member-list.html">View All Members</a>
+          </div>
+        </header>
+
+        <section class="grid grid-two">
+          <article class="card">
+            <div class="card-head">
+              <div>
+                <h3 class="card-title">Member Profile</h3>
+                <p class="card-subtitle">Collect onboarding details in this visual-only form.</p>
+              </div>
+            </div>
+            <div class="card-body">
+              <form data-demo-form>
+                <div class="form-grid">
+                  <div class="field">
+                    <label for="first-name">First Name</label>
+                    <input id="first-name" type="text" placeholder="Alyssa">
+                  </div>
+                  <div class="field">
+                    <label for="last-name">Last Name</label>
+                    <input id="last-name" type="text" placeholder="Luna">
+                  </div>
+                  <div class="field">
+                    <label for="email">Email Address</label>
+                    <input id="email" type="email" inputmode="email" placeholder="alyssa@example.com">
+                  </div>
+                  <div class="field">
+                    <label for="phone">Phone Number</label>
+                    <input id="phone" type="tel" inputmode="numeric" pattern="[0-9+ ]*" placeholder="09170000000">
+                  </div>
+                  <div class="field">
+                    <label for="dob">Date of Birth</label>
+                    <input id="dob" type="date">
+                  </div>
+                  <div class="field">
+                    <label for="membership-start">Start Date</label>
+                    <input id="membership-start" type="date">
+                  </div>
+                  <div class="field">
+                    <label for="goal">Primary Goal</label>
+                    <select id="goal">
+                      <option>Weight Loss</option>
+                      <option>Strength Training</option>
+                      <option>Athletic Conditioning</option>
+                      <option>General Wellness</option>
+                    </select>
+                  </div>
+                  <div class="field">
+                    <label for="trainer">Preferred Schedule</label>
+                    <select id="trainer">
+                      <option>Morning</option>
+                      <option>Afternoon</option>
+                      <option>Evening</option>
+                      <option>Flexible</option>
+                    </select>
+                  </div>
+                  <div class="field field-span-2">
+                    <label for="notes">Health Notes / Remarks</label>
+                    <textarea id="notes" placeholder="Enter medical reminders, schedule requests, or onboarding notes"></textarea>
+                  </div>
+                </div>
+
+                <div class="actions-row" style="margin-top: 18px;">
+                  <button class="button" type="submit">Create Demo Profile</button>
+                  <button class="button-ghost" type="reset">Clear Fields</button>
+                </div>
+                <p class="helper" data-form-message style="margin-top: 12px;"></p>
+              </form>
+            </div>
+          </article>
+
+          <article class="grid">
+            <div class="card">
+              <div class="card-head">
+                <div>
+                  <h3 class="card-title">Choose Plan</h3>
+                  <p class="card-subtitle">Click a package to highlight a preferred static demo option.</p>
+                </div>
+              </div>
+              <div class="card-body">
+                <div class="pricing-grid" data-plan-group>
+                  <div class="pricing-card active" data-plan-card>
+                    <span class="tag tag-primary">Best Seller</span>
+                    <h4>Monthly Payment</h4>
+                    <p>Recurring monthly membership with regular gym floor access until closing time.</p>
+                    <strong>P1,999</strong>
+                  </div>
+                  <div class="pricing-card" data-plan-card>
+                    <span class="tag tag-warning">Visitor</span>
+                    <h4>Single Day Access</h4>
+                    <p>One-day pass valid for the current visit window only, ending at 9:00 PM.</p>
+                    <strong>P250</strong>
+                  </div>
+                </div>
+                <p class="helper" style="margin-top: 14px;">Available plan options in this demo: Monthly Payment and Single Day Access only.</p>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-head">
+                <div>
+                  <h3 class="card-title">Registration Checklist</h3>
+                  <p class="card-subtitle">Static onboarding workflow states.</p>
+                </div>
+              </div>
+              <div class="card-body list">
+                <div class="list-row"><span>Profile information completed</span><span class="tag tag-primary">Step 1</span></div>
+                <div class="list-row"><span>Monthly Payment or Single Day Access selected</span><span class="tag tag-primary">Step 2</span></div>
+                <div class="list-row"><span>Waiver and club rules acknowledged</span><span class="tag tag-warning">Step 3</span></div>
+                <div class="list-row"><span>Basic contact details reviewed</span><span class="tag tag-warning">Step 4</span></div>
+              </div>
+            </div>
+          </article>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <script src="assets/js/app.js"></script>
+</body>
+</html>

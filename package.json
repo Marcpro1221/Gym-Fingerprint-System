@@ -1,0 +1,10 @@
+{
+  "name": "gym-membership-logs",
+  "private": true,
+  "scripts": {
+    "dev": "live-server frontend --open=index.html"
+  },
+  "dependencies": {
+    "live-server": "^1.2.2"
+  }
+}
