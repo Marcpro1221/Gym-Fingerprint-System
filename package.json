@@ -2,9 +2,14 @@
   "name": "gym-membership-logs",
   "private": true,
   "scripts": {
-    "dev": "live-server frontend --open=index.html"
+    "dev": "concurrently \"npm run web\" \"npm run fingerprint:bridge\"",
+    "web": "live-server frontend --open=index.html",
+    "fingerprint:bridge": "node backend/src/modules/fingerprint-detection/bridge.js"
   },
   "dependencies": {
     "live-server": "^1.2.2"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1"
   }
 }

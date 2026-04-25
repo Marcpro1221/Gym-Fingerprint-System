@@ -11,11 +11,11 @@
     },
     {
       "source": "/detect-member.html",
-      "destination": "/frontend/detect-member.html"
+      "destination": "/frontend/monthly-insights.html"
     },
     {
-      "source": "/register-member.html",
-      "destination": "/frontend/register-member.html"
+      "source": "/monthly-insights.html",
+      "destination": "/frontend/monthly-insights.html"
     },
     {
       "source": "/renew-membership.html",

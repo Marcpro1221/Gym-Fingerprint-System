@@ -7,7 +7,7 @@
   <link rel="icon" type="image/svg+xml" href="assets/icons/manlifting.svg">
   <link rel="stylesheet" href="assets/css/style.css">
 </head>
-<body>
+<body data-fingerprint-api-base="http://localhost:4100">
   <div class="app-shell">
     <aside class="sidebar" data-sidebar>
       <div class="brand">
@@ -21,19 +21,19 @@
       <div class="sidebar-card">
         <small>Scan Station</small>
         <strong>Online</strong>
-        <p class="card-subtitle">Mock fingerprint scanner is set to demo mode only.</p>
+        <p class="card-subtitle">DigitalPersona capture alert works through the local bridge. Member routing cards below remain demo-only.</p>
       </div>
 
       <nav class="sidebar-nav">
         <a class="nav-link" href="index.html"><span class="nav-icon"><img src="assets/icons/dashboard.svg" alt=""></span><span>Dashboard</span></a>
-        <a class="nav-link" href="register-member.html"><span class="nav-icon"><img src="assets/icons/register-member.svg" alt=""></span><span>Register New Member</span></a>
+        <a class="nav-link active" href="detect-member.html"><span class="nav-icon"><img src="assets/icons/detect-member.svg" alt=""></span><span>Detect Member</span></a>
         <a class="nav-link" href="renew-membership.html"><span class="nav-icon"><img src="assets/icons/renew-membership.svg" alt=""></span><span>Renew Membership</span></a>
         <a class="nav-link" href="member-list.html"><span class="nav-icon"><img src="assets/icons/member-list.svg" alt=""></span><span>Member List</span></a>
       </nav>
 
       <div class="sidebar-footer">
         <h3>Scan Guide</h3>
-        <p>Use the action button to rotate through the full flow: ready, scanning, member found, non-member, and expired membership.</p>
+        <p>Check the reader and run a live capture first. The inline scanner card now carries the active member, registration, and renewal result states.</p>
       </div>
     </aside>
 
@@ -57,23 +57,158 @@
 
         <section class="section-banner">
           <h3>Fingerprint Check-In Simulation</h3>
-          <p>This screen stays offline and UI-only. Each scan state shows the correct front desk label and opens a popup dialog for the next action.</p>
+          <p>This screen now includes a live DigitalPersona capture alert through the local bridge. The scanner card highlights member, registration, and renewal results directly in the capture area.</p>
         </section>
 
         <section class="scan-shell" style="margin-top: 20px;">
           <article class="card">
             <div class="card-body">
-              <div class="scanner">
-                <div class="scan-visual">
-                  <div class="scan-line"></div>
-                  <div class="scan-center"></div>
+              <div class="scanner" data-detection-card>
+                <div class="scanner-head">
+                  <div class="scanner-heading">
+                    <small class="scanner-eyebrow" data-scan-card-kicker>Gym Member Detection</small>
+                    <h3 class="scanner-title" data-scan-card-title>Ready to verify gym member</h3>
+                    <p class="scanner-summary" data-scan-card-summary>Check the reader, capture a fingerprint, and confirm whether this person has a registered gym membership.</p>
+                  </div>
+                  <span class="scanner-badge" data-scan-feedback-badge>Standby</span>
+                </div>
+                <div class="scanner-grid">
+                  <div class="scanner-detail">
+                    <span>Detection Result</span>
+                    <strong data-scan-card-result>Waiting for fingerprint</strong>
+                  </div>
+                  <div class="scanner-detail">
+                    <span>Member Status</span>
+                    <strong data-scan-card-status>No member decision yet</strong>
+                  </div>
+                  <div class="scanner-detail">
+                    <span>Expiry / Match</span>
+                    <strong data-scan-card-expiry>Pending verification</strong>
+                  </div>
+                  <div class="scanner-detail">
+                    <span>Front Desk Action</span>
+                    <strong data-scan-card-action>Check reader and start capture</strong>
+                  </div>
+                </div>
+                <div class="capture-alert capture-alert-info" data-capture-alert>
+                  <div>
+                    <small class="sidebar-label">Fingerprint Capture</small>
+                    <h4 data-capture-title>Reader bridge not checked yet</h4>
+                    <p data-capture-text>Use Check Reader to verify the DigitalPersona 4500 connection, then detect finger contact after touching the scanner.</p>
+                  </div>
+                  <span class="tag tag-primary" data-reader-status>Bridge idle</span>
+                </div>
+                <div class="scanner-dialogs">
+                  <div class="scanner-dialog active" data-scan-inline="ready">
+                    <small class="scanner-dialog-label">Scanner Standby</small>
+                    <h4>Ready for live fingerprint capture</h4>
+                    <p>Check the reader first, then capture a fingerprint to update the member result panel inside this scanner card.</p>
+                  </div>
+                  <div class="scanner-dialog scanner-dialog-warm" data-scan-inline="checking">
+                    <small class="scanner-dialog-label">Reader Check</small>
+                    <h4>Verifying the fingerprint reader</h4>
+                    <p>The app is checking the bridge connection and reader status before the member lookup can begin.</p>
+                  </div>
+                  <div class="scanner-dialog scanner-dialog-warm" data-scan-inline="listening">
+                    <small class="scanner-dialog-label">Capture In Progress</small>
+                    <h4>Waiting for finger contact</h4>
+                    <p>Keep the scanner clear, then ask the person to touch the reader once to capture the fingerprint.</p>
+                  </div>
+                  <div class="scanner-dialog scanner-dialog-warm" data-scan-inline="scanning">
+                    <small class="scanner-dialog-label">Member Lookup</small>
+                    <h4>Checking the gym member record</h4>
+                    <p>The captured fingerprint is being routed through the inline member result preview in this scanner section.</p>
+                  </div>
+                  <div class="scanner-dialog scanner-dialog-success" data-scan-inline="member">
+                    <div class="scanner-dialog-top">
+                      <small class="scanner-dialog-label">Matched Gym Member</small>
+                      <span class="state-badge allowed">Member Found</span>
+                    </div>
+                    <h4>Nicole Tan</h4>
+                    <p>Fingerprint matched an active gym member record. Expiry date is May 19, 2026 and access is allowed.</p>
+                    <div class="scanner-inline-list">
+                      <div class="scanner-inline-item">
+                        <span>Member ID</span>
+                        <strong>GYM-1012</strong>
+                      </div>
+                      <div class="scanner-inline-item">
+                        <span>Access</span>
+                        <strong>Allowed until 9:00 PM</strong>
+                      </div>
+                    </div>
+                    <div class="actions-row" style="margin-top: 14px;">
+                      <a class="button-secondary" href="member-list.html">Open Member List</a>
+                    </div>
+                  </div>
+                  <div class="scanner-dialog scanner-dialog-danger" data-scan-inline="nonmember">
+                    <div class="scanner-dialog-top">
+                      <small class="scanner-dialog-label">Register New Member</small>
+                      <span class="state-badge denied">Not Registered</span>
+                    </div>
+                    <h4>No saved member record</h4>
+                    <p>The fingerprint was captured, but no registered gym member profile matched. Continue with front-desk intake for a new member.</p>
+                    <div class="scanner-inline-list">
+                      <div class="scanner-inline-item">
+                        <span>Collect First</span>
+                        <strong>Full name and mobile number</strong>
+                      </div>
+                      <div class="scanner-inline-item">
+                        <span>Prepare Next</span>
+                        <strong>Membership option and fingerprint enrollment</strong>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="scanner-dialog scanner-dialog-warm" data-scan-inline="expired">
+                    <div class="scanner-dialog-top">
+                      <small class="scanner-dialog-label">Renew Membership</small>
+                      <span class="state-badge expired">Renewal Needed</span>
+                    </div>
+                    <h4>Joaquin Ramos</h4>
+                    <p>Fingerprint matched a stored record, but the membership expired on April 20, 2026. Renewal is required before access.</p>
+                    <div class="scanner-inline-list">
+                      <div class="scanner-inline-item">
+                        <span>Member ID</span>
+                        <strong>GYM-1048</strong>
+                      </div>
+                      <div class="scanner-inline-item">
+                        <span>Access</span>
+                        <strong>Blocked until renewed</strong>
+                      </div>
+                    </div>
+                    <div class="actions-row" style="margin-top: 14px;">
+                      <a class="button" href="renew-membership.html">Open Renewal Page</a>
+                    </div>
+                  </div>
+                  <div class="scanner-dialog scanner-dialog-danger" data-scan-inline="missing">
+                    <small class="scanner-dialog-label">No Finger Detected</small>
+                    <h4>Capture did not start a member lookup</h4>
+                    <p>No finger contact was detected in time. Clear the reader, then try the fingerprint capture again.</p>
+                  </div>
+                  <div class="scanner-dialog scanner-dialog-danger" data-scan-inline="error">
+                    <small class="scanner-dialog-label">Capture Error</small>
+                    <h4>Fingerprint capture is unavailable</h4>
+                    <p>The reader bridge did not return a usable response. Check the local bridge and try again.</p>
+                  </div>
                 </div>
               </div>
               <div class="actions-row" style="margin-top: 20px;">
-                <button class="button" type="button" data-scan-trigger>Cycle Scan State</button>
+                <button class="button" type="button" data-reader-check>Check Reader</button>
+                <button class="button-secondary" type="button" data-capture-trigger>Detect Finger Contact</button>
                 <span class="tag tag-primary" data-scan-label>Ready to scan</span>
               </div>
-              <p class="helper" style="margin-top: 14px;">Demo order: ready → scanning → member detected → not a member → renew membership</p>
+              <div class="capture-grid" style="margin-top: 16px;">
+                <div class="status-card">
+                  <small class="sidebar-label">Reader Serial</small>
+                  <h4 data-reader-serial>Not detected yet</h4>
+                  <p data-reader-detail>Waiting for the local bridge status check.</p>
+                </div>
+                <div class="status-card">
+                  <small class="sidebar-label">Last Capture</small>
+                  <h4 data-capture-status>No fingerprint captured</h4>
+                  <p data-capture-meta>Contact result, quality, and timestamp will appear here.</p>
+                </div>
+              </div>
+              <p class="helper" style="margin-top: 14px;">Live contact detection uses <code>http://localhost:4100/api/fingerprint</code>. Keep the reader clear, press Detect Finger Contact, then touch the scanner within 5 seconds. The inline scanner card now shows the active capture and member-result route.</p>
             </div>
           </article>
 
@@ -94,9 +229,8 @@
               <small class="sidebar-label">Matched Member</small>
               <span class="state-badge allowed">Access Allowed</span>
               <h4>Member found: Nicole Tan</h4>
-              <p>Monthly Payment membership is active until May 19, 2026. Access is allowed until 9:00 PM.</p>
+              <p>Membership is active until May 19, 2026. Access is allowed until 9:00 PM.</p>
               <div class="actions-row" style="margin-top: 14px;">
-                <button class="button-ghost" data-modal-open data-member-name="Nicole Tan" data-member-plan="Monthly Payment" data-member-status="Active member" data-member-expiry="May 19, 2026">Open Member Card</button>
                 <a class="button-secondary" href="member-list.html">Go to Member List</a>
               </div>
             </div>
@@ -105,20 +239,16 @@
               <small class="sidebar-label">No Match</small>
               <span class="state-badge denied">Not Registered</span>
               <h4>Person is not a member</h4>
-              <p>No member profile was found from the fingerprint scan. Direct the person to the registration page.</p>
-              <div class="actions-row" style="margin-top: 14px;">
-                <a class="button" href="register-member.html">Open Registration Page</a>
-              </div>
+              <p>No member profile was found from the fingerprint scan. Continue with the inline Register New Member intake shown in the scanner card.</p>
             </div>
 
             <div class="status-card status-output state-expired" data-scan-output="expired">
               <small class="sidebar-label">Expired</small>
               <span class="state-badge expired">Renew Membership</span>
               <h4>Renew membership label required</h4>
-              <p>Joaquin Ramos was matched, but the Monthly Payment membership is expired. Show the renew dialog before access is granted.</p>
+              <p>Joaquin Ramos was matched, but the membership expired on April 20, 2026. Show the renew dialog before access is granted.</p>
               <div class="actions-row" style="margin-top: 14px;">
                 <a class="button" href="renew-membership.html">Open Renewal Page</a>
-                <button class="button-ghost" data-modal-open data-member-name="Joaquin Ramos" data-member-plan="Monthly Payment" data-member-status="Expired membership" data-member-expiry="April 20, 2026">View Details</button>
               </div>
             </div>
 

@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Monthly Insights</title>
+  <link rel="icon" type="image/svg+xml" href="assets/icons/manlifting.svg">
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar" data-sidebar>
+      <div class="brand">
+        <div class="brand-mark"><img src="assets/icons/manlifting.svg" alt="GymFlow"></div>
+        <div class="brand-copy">
+          <h1>GymFlow</h1>
+          <p>Membership Command Center</p>
+        </div>
+      </div>
+
+      <div class="sidebar-card">
+        <small>30-Day Window</small>
+        <strong>March 27 to April 25</strong>
+        <p class="card-subtitle">Attendance, active-member, and expired-membership summaries for the last month.</p>
+      </div>
+
+      <nav class="sidebar-nav">
+        <a class="nav-link" href="index.html"><span class="nav-icon"><img src="assets/icons/dashboard.svg" alt=""></span><span>Dashboard</span></a>
+        <a class="nav-link active" href="monthly-insights.html"><span class="nav-icon"><img src="assets/icons/detect-member.svg" alt=""></span><span>Monthly Insights</span></a>
+        <a class="nav-link" href="renew-membership.html"><span class="nav-icon"><img src="assets/icons/renew-membership.svg" alt=""></span><span>Renew Membership</span></a>
+        <a class="nav-link" href="member-list.html"><span class="nav-icon"><img src="assets/icons/member-list.svg" alt=""></span><span>Member List</span></a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <h3>Activity Scope</h3>
+        <p>This page groups one month of recent check-ins, weekly attendance mix, active members, and expired memberships.</p>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="page">
+        <header class="topbar">
+          <div class="topbar-left">
+            <button class="menu-toggle" data-menu-toggle aria-label="Toggle navigation">☰</button>
+            <div class="page-title">
+              <h2>Monthly Insights</h2>
+              <p>One-month view of recent check-ins, attendance mix, active members, and expired membership trends.</p>
+            </div>
+          </div>
+          <div class="topbar-actions">
+            <div class="search-shell">
+              <span>⌕</span>
+              <input type="text" placeholder="Search weekly trends or member activity">
+            </div>
+            <a class="button hide-mobile" href="member-list.html">Open Member List</a>
+          </div>
+        </header>
+
+        <section class="section-banner">
+          <h3>30-Day Attendance Summary</h3>
+          <p>This page contains the monthly activity data that was moved out of the scanner view so front-desk scanning and reporting stay separated.</p>
+        </section>
+
+        <section class="grid grid-stats" style="margin-top: 20px;">
+          <article class="card stat-card">
+            <div class="card-body">
+              <div class="stat-top">
+                <span class="sidebar-label">Total Active Members</span>
+                <span class="stat-chip success">+4.6%</span>
+              </div>
+              <h3 class="stat-value">1,284</h3>
+              <p class="stat-copy">Members in good standing across the last 30 days.</p>
+            </div>
+          </article>
+
+          <article class="card stat-card">
+            <div class="card-body">
+              <div class="stat-top">
+                <span class="sidebar-label">Expired Memberships</span>
+                <span class="stat-chip danger">96 flagged</span>
+              </div>
+              <h3 class="stat-value">96</h3>
+              <p class="stat-copy">Profiles that hit expiry or renewal hold during the current month.</p>
+            </div>
+          </article>
+
+          <article class="card stat-card">
+            <div class="card-body">
+              <div class="stat-top">
+                <span class="sidebar-label">Recent Check-Ins</span>
+                <span class="stat-chip primary">4,482 scans</span>
+              </div>
+              <h3 class="stat-value">149</h3>
+              <p class="stat-copy">Average daily check-ins recorded across the 30-day view.</p>
+            </div>
+          </article>
+
+          <article class="card stat-card">
+            <div class="card-body">
+              <div class="stat-top">
+                <span class="sidebar-label">Renewal Completion</span>
+                <span class="stat-chip warning">84%</span>
+              </div>
+              <h3 class="stat-value">42</h3>
+              <p class="stat-copy">Members who renewed successfully after an expired access flag this month.</p>
+            </div>
+          </article>
+        </section>
+
+        <section class="grid grid-main" style="margin-top: 20px;">
+          <article class="card">
+            <div class="card-head">
+              <div>
+                <h3 class="card-title">Weekly Attendance Mix</h3>
+                <p class="card-subtitle" data-weekly-attendance-subtitle>Seven-day chart of member check-ins versus expired or blocked attempts for the current week.</p>
+              </div>
+              <span class="tag tag-primary" data-weekly-attendance-range>Current week</span>
+            </div>
+            <div class="card-body">
+              <div class="chart-bars" data-weekly-attendance-chart aria-live="polite"></div>
+            </div>
+          </article>
+
+          <article class="card">
+            <div class="card-head">
+              <div>
+                <h3 class="card-title">Member Status Graphs</h3>
+                <p class="card-subtitle">Month-based graph summary for active members, expired memberships, and retained renewals.</p>
+              </div>
+            </div>
+            <div class="card-body">
+              <div class="metric-inline">
+                <span class="list-meta">Total active members</span>
+                <strong>1,284</strong>
+              </div>
+              <div class="progress"><span style="width: 88%;"></span></div>
+
+              <div class="metric-inline">
+                <span class="list-meta">Expired memberships</span>
+                <strong>96</strong>
+              </div>
+              <div class="progress"><span style="width: 34%; background: linear-gradient(90deg, var(--danger), #ef7d7d);"></span></div>
+
+              <div class="metric-inline">
+                <span class="list-meta">Renewed after expiry</span>
+                <strong>42</strong>
+              </div>
+              <div class="progress"><span style="width: 62%; background: linear-gradient(90deg, var(--warning), #f2b04f);"></span></div>
+
+              <div class="metric-inline">
+                <span class="list-meta">Stable access approvals</span>
+                <strong>91%</strong>
+              </div>
+              <div class="progress"><span style="width: 91%;"></span></div>
+            </div>
+          </article>
+        </section>
+
+        <section class="grid grid-two" style="margin-top: 20px;">
+          <article class="card">
+            <div class="card-head">
+              <div>
+                <h3 class="card-title">Recent Check-Ins</h3>
+                <p class="card-subtitle">Latest front-desk entries sampled from the one-month view.</p>
+              </div>
+              <span class="tag tag-primary">Latest 6</span>
+            </div>
+            <div class="card-body list">
+              <div class="list-row">
+                <div>
+                  <strong>Marcus Delos Santos</strong>
+                  <div class="list-meta">April 25, 2026 • 5:42 PM</div>
+                </div>
+                <span class="tag tag-success">Granted</span>
+              </div>
+              <div class="list-row">
+                <div>
+                  <strong>Bea Gutierrez</strong>
+                  <div class="list-meta">April 25, 2026 • 5:38 PM</div>
+                </div>
+                <span class="tag tag-primary">Checked In</span>
+              </div>
+              <div class="list-row">
+                <div>
+                  <strong>Joaquin Ramos</strong>
+                  <div class="list-meta">April 24, 2026 • 5:31 PM</div>
+                </div>
+                <span class="tag tag-warning">Expired</span>
+              </div>
+              <div class="list-row">
+                <div>
+                  <strong>Nicole Tan</strong>
+                  <div class="list-meta">April 24, 2026 • 5:29 PM</div>
+                </div>
+                <span class="tag tag-success">Granted</span>
+              </div>
+              <div class="list-row">
+                <div>
+                  <strong>Alyssa Luna</strong>
+                  <div class="list-meta">April 23, 2026 • 6:08 PM</div>
+                </div>
+                <span class="tag tag-warning">Renew Soon</span>
+              </div>
+              <div class="list-row">
+                <div>
+                  <strong>Guest Trial Visitor</strong>
+                  <div class="list-meta">April 22, 2026 • 4:54 PM</div>
+                </div>
+                <span class="tag tag-danger">Not Registered</span>
+              </div>
+            </div>
+          </article>
+
+          <article class="card">
+            <div class="card-head">
+              <div>
+                <h3 class="card-title">Monthly Member Health</h3>
+                <p class="card-subtitle">At-a-glance month-end summary of member health and expiration pressure.</p>
+              </div>
+            </div>
+            <div class="card-body">
+              <div class="status-card">
+                <small class="sidebar-label">Active Member Share</small>
+                <h4>88% of tracked profiles remain active</h4>
+                <p>Most monthly members stayed in good standing during the current reporting window.</p>
+              </div>
+              <div class="status-card state-expired" style="margin-top: 14px;">
+                <small class="sidebar-label">Expired Membership Share</small>
+                <h4>96 profiles require renewal</h4>
+                <p>Week 3 showed the highest volume of expired memberships and renewal holds.</p>
+              </div>
+              <div class="status-card state-allowed" style="margin-top: 14px;">
+                <small class="sidebar-label">Best Attendance Day</small>
+                <h4 data-weekly-attendance-highlight>Current week is loading</h4>
+                <p data-weekly-attendance-highlight-copy>Daily attendance highlights update from the current seven-day weekly chart.</p>
+              </div>
+            </div>
+          </article>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <script src="assets/js/app.js"></script>
+</body>
+</html>
