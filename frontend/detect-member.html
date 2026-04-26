@@ -124,16 +124,37 @@
                       <small class="scanner-dialog-label">Matched Gym Member</small>
                       <span class="state-badge allowed">Member Found</span>
                     </div>
-                    <h4>Nicole Tan</h4>
-                    <p>Fingerprint matched an active gym member record. Expiry date is May 19, 2026 and access is allowed.</p>
+                    <h4 data-live-member-name>Nicole Tan</h4>
+                    <p data-live-member-summary>Fingerprint matched an active gym member record. Expiry date is May 19, 2026 and access is allowed.</p>
                     <div class="scanner-inline-list">
                       <div class="scanner-inline-item">
                         <span>Member ID</span>
-                        <strong>GYM-1012</strong>
+                        <strong data-live-member-id>GYM-1012</strong>
                       </div>
                       <div class="scanner-inline-item">
                         <span>Access</span>
-                        <strong>Allowed until 9:00 PM</strong>
+                        <strong data-live-member-access>Allowed until 9:00 PM</strong>
+                      </div>
+                    </div>
+                    <div class="actions-row" style="margin-top: 14px;">
+                      <a class="button-secondary" href="member-list.html">Open Member List</a>
+                    </div>
+                  </div>
+                  <div class="scanner-dialog scanner-dialog-success" data-scan-inline="registered">
+                    <div class="scanner-dialog-top">
+                      <small class="scanner-dialog-label">Member Registered</small>
+                      <span class="state-badge allowed">Saved</span>
+                    </div>
+                    <h4 data-live-member-name>Nicole Tan</h4>
+                    <p data-live-member-summary>Nicole Tan was saved as GYM-1012. Membership expires on May 19, 2026.</p>
+                    <div class="scanner-inline-list">
+                      <div class="scanner-inline-item">
+                        <span>Member ID</span>
+                        <strong data-live-member-id>GYM-1012</strong>
+                      </div>
+                      <div class="scanner-inline-item">
+                        <span>Access</span>
+                        <strong data-live-member-access>Allowed until 9:00 PM</strong>
                       </div>
                     </div>
                     <div class="actions-row" style="margin-top: 14px;">
@@ -157,22 +178,46 @@
                         <strong>Membership option and fingerprint enrollment</strong>
                       </div>
                     </div>
+                    <form data-register-member-form style="margin-top: 16px;">
+                      <div class="form-grid">
+                        <div class="field field-span-2">
+                          <label for="detect-register-full-name">Full Name</label>
+                          <input id="detect-register-full-name" name="fullName" type="text" placeholder="Juan Dela Cruz" required>
+                        </div>
+                        <div class="field">
+                          <label for="detect-register-mobile">Mobile Number</label>
+                          <input id="detect-register-mobile" name="mobileNumber" type="tel" placeholder="09171234567" required>
+                        </div>
+                        <div class="field">
+                          <label for="detect-register-plan">Plan</label>
+                          <select id="detect-register-plan" name="planCode">
+                            <option value="MONTHLY">Monthly Payment</option>
+                            <option value="DAY_PASS">Single Day Access</option>
+                          </select>
+                        </div>
+                      </div>
+                      <div class="actions-row" style="margin-top: 14px;">
+                        <button class="button" type="submit">Register New Member</button>
+                        <a class="button-ghost" href="member-list.html">Open Member List</a>
+                      </div>
+                      <p class="helper" data-register-member-message style="margin-top: 12px;">Capture a fingerprint with no match before saving a new member.</p>
+                    </form>
                   </div>
                   <div class="scanner-dialog scanner-dialog-warm" data-scan-inline="expired">
                     <div class="scanner-dialog-top">
                       <small class="scanner-dialog-label">Renew Membership</small>
                       <span class="state-badge expired">Renewal Needed</span>
                     </div>
-                    <h4>Joaquin Ramos</h4>
-                    <p>Fingerprint matched a stored record, but the membership expired on April 20, 2026. Renewal is required before access.</p>
+                    <h4 data-live-expired-name>Joaquin Ramos</h4>
+                    <p data-live-expired-summary>Fingerprint matched a stored record, but the membership expired on April 20, 2026. Renewal is required before access.</p>
                     <div class="scanner-inline-list">
                       <div class="scanner-inline-item">
                         <span>Member ID</span>
-                        <strong>GYM-1048</strong>
+                        <strong data-live-expired-id>GYM-1048</strong>
                       </div>
                       <div class="scanner-inline-item">
                         <span>Access</span>
-                        <strong>Blocked until renewed</strong>
+                        <strong data-live-expired-access>Blocked until renewed</strong>
                       </div>
                     </div>
                     <div class="actions-row" style="margin-top: 14px;">
@@ -208,7 +253,7 @@
                   <p data-capture-meta>Contact result, quality, and timestamp will appear here.</p>
                 </div>
               </div>
-              <p class="helper" style="margin-top: 14px;">Live contact detection uses <code>http://localhost:4100/api/fingerprint</code>. Keep the reader clear, press Detect Finger Contact, then touch the scanner within 5 seconds. The inline scanner card now shows the active capture and member-result route.</p>
+              <p class="helper" style="margin-top: 14px;">Live contact detection uses <code>http://localhost:4100/api/fingerprint</code>. Keep the reader clear, press Detect Finger Contact, then touch the scanner within 2 seconds. The inline scanner card now shows the active capture and member-result route.</p>
             </div>
           </article>
 
@@ -222,14 +267,24 @@
             <div class="status-card status-output" data-scan-output="scanning">
               <small class="sidebar-label">Scanning</small>
               <h4>Analyzing fingerprint</h4>
-              <p>Verifying stored biometric profile in this UI-only mock sequence.</p>
+              <p>Verifying the captured fingerprint against stored backend templates.</p>
             </div>
 
             <div class="status-card status-output state-allowed" data-scan-output="member">
               <small class="sidebar-label">Matched Member</small>
               <span class="state-badge allowed">Access Allowed</span>
-              <h4>Member found: Nicole Tan</h4>
-              <p>Membership is active until May 19, 2026. Access is allowed until 9:00 PM.</p>
+              <h4 data-live-member-status-name>Nicole Tan</h4>
+              <p data-live-member-status-summary>Membership is active until May 19, 2026. Access is allowed until 9:00 PM.</p>
+              <div class="actions-row" style="margin-top: 14px;">
+                <a class="button-secondary" href="member-list.html">Go to Member List</a>
+              </div>
+            </div>
+
+            <div class="status-card status-output state-allowed" data-scan-output="registered">
+              <small class="sidebar-label">Registered Member</small>
+              <span class="state-badge allowed">Saved</span>
+              <h4 data-live-member-status-name>Nicole Tan</h4>
+              <p data-live-member-status-summary>Nicole Tan was saved as GYM-1012. Membership expires on May 19, 2026.</p>
               <div class="actions-row" style="margin-top: 14px;">
                 <a class="button-secondary" href="member-list.html">Go to Member List</a>
               </div>
@@ -245,8 +300,8 @@
             <div class="status-card status-output state-expired" data-scan-output="expired">
               <small class="sidebar-label">Expired</small>
               <span class="state-badge expired">Renew Membership</span>
-              <h4>Renew membership label required</h4>
-              <p>Joaquin Ramos was matched, but the membership expired on April 20, 2026. Show the renew dialog before access is granted.</p>
+              <h4 data-live-expired-status-name>Renew membership label required</h4>
+              <p data-live-expired-status-summary>Joaquin Ramos was matched, but the membership expired on April 20, 2026. Show the renew dialog before access is granted.</p>
               <div class="actions-row" style="margin-top: 14px;">
                 <a class="button" href="renew-membership.html">Open Renewal Page</a>
               </div>

@@ -7,7 +7,8 @@
     "fingerprint:bridge": "node backend/src/modules/fingerprint-detection/bridge.js"
   },
   "dependencies": {
-    "live-server": "^1.2.2"
+    "live-server": "^1.2.2",
+    "pg": "^8.20.0"
   },
   "devDependencies": {
     "concurrently": "^9.2.1"

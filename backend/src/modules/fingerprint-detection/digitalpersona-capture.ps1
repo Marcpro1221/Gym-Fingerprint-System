@@ -50,14 +50,57 @@ function Get-ViewPayload {
   if ($CaptureResult -and $CaptureResult.Data -and $CaptureResult.Data.Views) {
     foreach ($view in $CaptureResult.Data.Views) {
       $views += [ordered]@{
-        width    = $view.Width
-        height   = $view.Height
-        rawBytes = $view.RawImage.Length
+        width          = $view.Width
+        height         = $view.Height
+        depth          = $view.Depth
+        fingerPosition = $view.FingerPosition
+        impressionType = $view.ImpressionType.ToString()
+        rawBytes       = $view.RawImage.Length
       }
     }
   }
 
   return ,$views
+}
+
+function Add-CaptureMetadata {
+  param(
+    $CaptureResult,
+    $Payload
+  )
+
+  if (-not $CaptureResult -or -not $CaptureResult.Data) {
+    return
+  }
+
+  $Payload["cbeffId"] = $CaptureResult.Data.CbeffId
+  $Payload["imageResolution"] = $CaptureResult.Data.ImageResolution
+  $Payload["scanResolution"] = $CaptureResult.Data.ScanResolution
+  $Payload["fidResolution"] = $CaptureResult.Data.Resolution
+
+  if ($CaptureResult.Data.Views -and $CaptureResult.Data.Views.Count -gt 0) {
+    $Payload["width"] = $CaptureResult.Data.Views[0].Width
+    $Payload["height"] = $CaptureResult.Data.Views[0].Height
+    $Payload["fingerPosition"] = $CaptureResult.Data.Views[0].FingerPosition
+  }
+}
+
+function Get-RawImageBase64 {
+  param(
+    $CaptureResult
+  )
+
+  if (
+    -not $CaptureResult -or
+    -not $CaptureResult.Data -or
+    -not $CaptureResult.Data.Views -or
+    $CaptureResult.Data.Views.Count -eq 0 -or
+    -not $CaptureResult.Data.Views[0].RawImage
+  ) {
+    return $null
+  }
+
+  return [Convert]::ToBase64String($CaptureResult.Data.Views[0].RawImage)
 }
 
 function Get-ImageStats {
@@ -114,6 +157,87 @@ function Get-MeanAbsoluteDifference {
   return [math]::Round(($sum / $Baseline.Length), 2)
 }
 
+function Complete-FingerprintCapture {
+  param(
+    $Reader,
+    [int]$Timeout,
+    $Payload,
+    [byte[]]$FallbackRawImage = $null,
+    [string]$Mode = "single-capture-fallback"
+  )
+
+  $captureTimeout = [math]::Max(1000, [math]::Min($Timeout, 5000))
+  $capture = $Reader.Capture(
+    [DPUruNet.Constants+Formats+Fid]::ANSI,
+    [DPUruNet.Constants+CaptureProcessing]::DP_IMG_PROC_DEFAULT,
+    $captureTimeout,
+    $reader.Capabilities.Resolutions[0]
+  )
+
+  $Payload["captureMode"] = $Mode
+  $Payload["resultCode"] = $capture.ResultCode.ToString()
+  $Payload["quality"] = $capture.Quality.ToString()
+  $Payload["score"] = $capture.Score
+  $previousViews = @($Payload["views"])
+  $views = Get-ViewPayload -CaptureResult $capture
+  if ($views.Count -gt 0) {
+    $Payload["views"] = $views
+  }
+  elseif ($previousViews.Count -gt 0) {
+    $Payload["views"] = $previousViews
+  }
+  else {
+    $Payload["views"] = $views
+  }
+  Add-CaptureMetadata -CaptureResult $capture -Payload $Payload
+  $Payload["captured"] = (
+    $capture.ResultCode -eq [DPUruNet.Constants+ResultCode]::DP_SUCCESS -and
+    $capture.Quality -eq [DPUruNet.Constants+CaptureQuality]::DP_QUALITY_GOOD -and
+    $views.Count -gt 0
+  )
+  $Payload["contactDetected"] = (
+    [bool]$Payload["contactDetected"] -or
+    $Payload["captured"]
+  )
+
+  if ($Payload["captured"]) {
+    $Payload["templateFormat"] = "ansi-raw-image"
+    $Payload["templateDataBase64"] = Get-RawImageBase64 -CaptureResult $capture
+    $Payload["fingerprintArtifactBase64"] = $Payload["templateDataBase64"]
+    $Payload["message"] = "Fingerprint captured successfully."
+    return $true
+  }
+
+  if ($FallbackRawImage -and $FallbackRawImage.Length -gt 0) {
+    $Payload["captured"] = $true
+    $Payload["templateFormat"] = "ansi-raw-image"
+    $Payload["templateDataBase64"] = [Convert]::ToBase64String($FallbackRawImage)
+    $Payload["fingerprintArtifactBase64"] = $Payload["templateDataBase64"]
+    $Payload["message"] = "Final capture did not finish cleanly after contact, so the stream snapshot was saved instead."
+    return $true
+  }
+
+  switch ($capture.Quality) {
+    ([DPUruNet.Constants+CaptureQuality]::DP_QUALITY_GOOD) {
+      $Payload["message"] = "Fingerprint captured successfully."
+    }
+    ([DPUruNet.Constants+CaptureQuality]::DP_QUALITY_TIMED_OUT) {
+      $Payload["message"] = "No finger was captured before the timeout expired."
+    }
+    ([DPUruNet.Constants+CaptureQuality]::DP_QUALITY_NO_FINGER) {
+      $Payload["message"] = "No finger was detected on the reader."
+    }
+    ([DPUruNet.Constants+CaptureQuality]::DP_QUALITY_FAKE_FINGER) {
+      $Payload["message"] = "The reader rejected the sample as a fake finger."
+    }
+    default {
+      $Payload["message"] = "Capture finished with quality $($capture.Quality)."
+    }
+  }
+
+  return $true
+}
+
 function Invoke-StreamContactDetection {
   param(
     $Reader,
@@ -146,6 +270,7 @@ function Invoke-StreamContactDetection {
 
     $baselineViews = Get-ViewPayload -CaptureResult $baselineResult
     $Payload["baselineViews"] = $baselineViews
+    Add-CaptureMetadata -CaptureResult $baselineResult -Payload $Payload
 
     if ($baselineResult.ResultCode -ne [DPUruNet.Constants+ResultCode]::DP_SUCCESS -or $baselineViews.Count -eq 0) {
       $Payload["captureMode"] = "single-capture-fallback"
@@ -172,6 +297,7 @@ function Invoke-StreamContactDetection {
 
       $streamViews = Get-ViewPayload -CaptureResult $streamResult
       $Payload["views"] = $streamViews
+      Add-CaptureMetadata -CaptureResult $streamResult -Payload $Payload
 
       if ($streamResult.ResultCode -ne [DPUruNet.Constants+ResultCode]::DP_SUCCESS) {
         $Payload["success"] = $false
@@ -188,10 +314,21 @@ function Invoke-StreamContactDetection {
         $Payload["currentStats"] = Get-ImageStats -RawImage $currentImage
 
         if ($lastDifference -ge $contactThreshold) {
-          $Payload["captured"] = $true
           $Payload["contactDetected"] = $true
-          $Payload["message"] = "Finger contact detected on the reader."
-          return $true
+          $Payload["message"] = "Finger contact detected on the reader. Completing the fingerprint capture."
+
+          try {
+            $Reader.StopStreaming() | Out-Null
+          }
+          catch {
+          }
+
+          return Complete-FingerprintCapture `
+            -Reader $Reader `
+            -Timeout $Timeout `
+            -Payload $Payload `
+            -FallbackRawImage $currentImage `
+            -Mode "stream-contact-detection-final-capture"
         }
       }
     }
@@ -293,43 +430,11 @@ try {
         }
       }
 
-      $capture = $reader.Capture(
-        [DPUruNet.Constants+Formats+Fid]::ANSI,
-        [DPUruNet.Constants+CaptureProcessing]::DP_IMG_PROC_DEFAULT,
-        $Timeout,
-        $reader.Capabilities.Resolutions[0]
-      )
-
-      $payload["captureMode"] = "single-capture-fallback"
-      $payload["resultCode"] = $capture.ResultCode.ToString()
-      $payload["quality"] = $capture.Quality.ToString()
-      $payload["score"] = $capture.Score
-      $views = Get-ViewPayload -CaptureResult $capture
-      $payload["views"] = $views
-      $payload["captured"] = (
-        $capture.ResultCode -eq [DPUruNet.Constants+ResultCode]::DP_SUCCESS -and
-        $capture.Quality -eq [DPUruNet.Constants+CaptureQuality]::DP_QUALITY_GOOD -and
-        $views.Count -gt 0
-      )
-      $payload["contactDetected"] = $payload["captured"]
-
-      switch ($capture.Quality) {
-        ([DPUruNet.Constants+CaptureQuality]::DP_QUALITY_GOOD) {
-          $payload["message"] = "Fingerprint captured successfully."
-        }
-        ([DPUruNet.Constants+CaptureQuality]::DP_QUALITY_TIMED_OUT) {
-          $payload["message"] = "No finger was captured before the timeout expired."
-        }
-        ([DPUruNet.Constants+CaptureQuality]::DP_QUALITY_NO_FINGER) {
-          $payload["message"] = "No finger was detected on the reader."
-        }
-        ([DPUruNet.Constants+CaptureQuality]::DP_QUALITY_FAKE_FINGER) {
-          $payload["message"] = "The reader rejected the sample as a fake finger."
-        }
-        default {
-          $payload["message"] = "Capture finished with quality $($capture.Quality)."
-        }
-      }
+      $null = Complete-FingerprintCapture `
+        -Reader $Reader `
+        -Timeout $Timeout `
+        -Payload $payload `
+        -Mode "single-capture-fallback"
     }
 
     Write-Json -Payload $payload

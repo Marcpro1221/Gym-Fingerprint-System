@@ -19,6 +19,12 @@ This module adds a live DigitalPersona 4500 contact-detection alert to the dashb
 
 ## Run Process
 
+0. Configure PostgreSQL if you want the member directory and registration routes:
+
+```powershell
+$env:DATABASE_URL="postgresql://postgres:postgres@localhost:5432/gymflow"
+```
+
 1. Start the fingerprint bridge:
 
 ```powershell
@@ -42,12 +48,22 @@ npm run dev
 
 ## What The Bridge Does
 
-- `bridge.js` exposes `GET /api/fingerprint/status` and `POST /api/fingerprint/capture`.
+- `bridge.js` exposes:
+  - `GET /api/fingerprint/status`
+  - `POST /api/fingerprint/capture`
+  - `GET /api/fingerprint/health`
+  - `GET /api/health`
+  - `GET /api/members`
+  - `POST /api/members/register-from-scan`
 - `digitalpersona-capture.ps1` loads `DPUruNet.dll`, opens the first connected reader, checks status, and uses stream mode to detect contact by comparing the live frame against a baseline image.
+- The capture payload now also returns a base64 fingerprint artifact from the raw image frame so the backend can persist an enrollment record.
 - The frontend shows the reader status, SDK/driver path, capture mode, and the last contact result as an alert under `scan-shell`.
 - The main `scan-shell` label also changes to `Reader ready`, `Detecting finger contact`, `Finger detected`, `Contact timed out`, or `Capture failed`.
+- When a scan ends in `no match`, the frontend can submit full name, mobile number, plan, and the captured fingerprint payload to PostgreSQL through `POST /api/members/register-from-scan`.
 
 ## Current Scope
 
-This feature detects reader status and finger contact only. It does not yet match the fingerprint against a member database or enroll new fingerprint templates.
-The scanner card now updates the inline member, non-member, and renew result previews after each live capture instead of using a manual demo-cycle button.
+- Reader status and fingerprint capture are live.
+- PostgreSQL-backed member registration and member-directory reads are now wired in.
+- The scanner card updates the inline member, non-member, and renew result previews after each live capture.
+- Fingerprint matching is still demo-only. The current implementation stores the captured raw fingerprint artifact and capture payload, not a true DigitalPersona matcher template.

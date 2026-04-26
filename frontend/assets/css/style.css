@@ -350,7 +350,9 @@ img {
 
 .button,
 .button-secondary,
-.button-ghost {
+.button-ghost,
+.button-danger,
+.button-ghost-danger {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -368,7 +370,9 @@ img {
 
 .button:hover,
 .button-secondary:hover,
-.button-ghost:hover {
+.button-ghost:hover,
+.button-danger:hover,
+.button-ghost-danger:hover {
   transform: translateY(-1px);
 }
 
@@ -382,10 +386,21 @@ img {
   color: #fff;
 }
 
+.button-danger {
+  background: #b42318;
+  color: #fff;
+}
+
 .button-ghost {
   background: var(--surface);
   color: var(--text);
   border: 1px solid var(--line);
+}
+
+.button-ghost-danger {
+  background: #fff4f2;
+  color: #b42318;
+  border: 1px solid rgba(180, 35, 24, 0.18);
 }
 
 .grid {
@@ -701,6 +716,12 @@ tbody tr:hover {
   gap: 12px;
 }
 
+.member-row-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
 .filter-chip {
   border-radius: 999px;
   padding: 10px 14px;
@@ -762,6 +783,18 @@ tbody tr:hover {
 .helper {
   color: var(--muted);
   font-size: 0.84rem;
+}
+
+.helper-success {
+  color: var(--success);
+}
+
+.helper-warning {
+  color: var(--warning);
+}
+
+.helper-danger {
+  color: var(--danger);
 }
 
 .pricing-grid {
@@ -1836,8 +1869,10 @@ tbody tr:hover {
   }
 
   td .button-ghost,
+  td .button-ghost-danger,
   td .button,
-  td .button-secondary {
+  td .button-secondary,
+  td .button-danger {
     width: auto;
   }
 }
@@ -1908,8 +1943,10 @@ tbody tr:hover {
   }
 
   td .button-ghost,
+  td .button-ghost-danger,
   td .button,
-  td .button-secondary {
+  td .button-secondary,
+  td .button-danger {
     width: 100%;
   }
 }

@@ -7,7 +7,7 @@
   <link rel="icon" type="image/svg+xml" href="assets/icons/manlifting.svg">
   <link rel="stylesheet" href="assets/css/style.css">
 </head>
-<body>
+<body data-fingerprint-api-base="http://localhost:4100">
   <div class="app-shell">
     <aside class="sidebar" data-sidebar>
       <div class="brand">
@@ -21,7 +21,7 @@
       <div class="sidebar-card">
         <small>Directory Coverage</small>
         <strong>1,284</strong>
-        <p class="card-subtitle">Searchable static member directory with visual filter states only.</p>
+        <p class="card-subtitle">Searchable member directory that can load live backend records when the local API is running.</p>
       </div>
 
       <nav class="sidebar-nav">
@@ -33,7 +33,7 @@
 
       <div class="sidebar-footer">
         <h3>Directory Note</h3>
-        <p>Search narrows the visible rows in-browser only. No real records are stored or updated.</p>
+        <p>Search still narrows the visible rows in-browser. When the local API is available, view and delete actions use live backend records.</p>
       </div>
     </aside>
 
@@ -44,7 +44,7 @@
             <button class="menu-toggle" data-menu-toggle aria-label="Toggle navigation">☰</button>
             <div class="page-title">
               <h2>Member List</h2>
-              <p>Responsive admin table with mock records, visual tags, and modal previews.</p>
+              <p>Responsive admin table with live backend loading, modal previews, and permanent member deletion.</p>
             </div>
           </div>
           <div class="topbar-actions">
@@ -61,6 +61,7 @@
             <div>
               <h3 class="card-title">Member Directory</h3>
               <p class="card-subtitle">Filter chips are demo-only style toggles; search filters the visible rows on this page.</p>
+              <p class="helper" data-member-directory-note style="margin-top: 10px;">Trying to load the live backend member directory.</p>
             </div>
             <div class="filter-row" data-filter-group>
               <button class="filter-chip active" type="button" data-filter>All</button>
@@ -82,7 +83,7 @@
                     <th>Action</th>
                   </tr>
                 </thead>
-                <tbody>
+                <tbody data-member-directory-body>
                   <tr data-member-row>
                     <td data-label="Member">
                       <div class="table-member">
