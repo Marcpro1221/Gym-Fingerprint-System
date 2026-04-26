@@ -13,8 +13,8 @@
       "action": "View",
       "expiryDate": "2026-05-25T17:13:05.080Z",
       "registeredAt": "2026-04-25T17:13:05.080Z",
-      "lastVisitAt": "2026-04-26T12:27:56.313Z",
-      "lastScanAt": "2026-04-26T12:27:56.313Z",
+      "lastVisitAt": "2026-04-26T13:30:20.369Z",
+      "lastScanAt": "2026-04-26T13:30:20.369Z",
       "amountPaid": 1999,
       "fingerprint": {
         "fingerprintId": "8a97d6d6-3ec0-4f83-9987-3985dd2a056f",
@@ -416,6 +416,27 @@
       "fingerprintId": null,
       "matchStatus": "no_match",
       "capturedAt": "2026-04-26T12:28:14.870Z"
+    },
+    {
+      "scanReference": "LOCAL-SCAN-1777210203016-c9a51a63",
+      "matchedMemberId": null,
+      "fingerprintId": null,
+      "matchStatus": "no_match",
+      "capturedAt": "2026-04-26T13:30:03.016Z"
+    },
+    {
+      "scanReference": "LOCAL-SCAN-1777210211764-c43717a8",
+      "matchedMemberId": null,
+      "fingerprintId": null,
+      "matchStatus": "no_match",
+      "capturedAt": "2026-04-26T13:30:11.764Z"
+    },
+    {
+      "scanReference": "LOCAL-SCAN-1777210220369-3f2725a5",
+      "matchedMemberId": "73d4523f-e67e-493e-8482-2405bbbab0a6",
+      "fingerprintId": "8a97d6d6-3ec0-4f83-9987-3985dd2a056f",
+      "matchStatus": "matched",
+      "capturedAt": "2026-04-26T13:30:20.369Z"
     }
   ]
 }
