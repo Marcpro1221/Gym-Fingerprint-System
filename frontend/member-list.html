@@ -25,8 +25,9 @@
       </div>
 
       <nav class="sidebar-nav">
-        <a class="nav-link" href="index.html"><span class="nav-icon"><img src="assets/icons/dashboard.svg" alt=""></span><span>Dashboard</span></a>
+        <a class="nav-link" href="index.html"><span class="nav-icon"><img src="assets/icons/dashboard.svg" alt=""></span><span>Fingerprint Verification</span></a>
         <a class="nav-link" href="monthly-insights.html"><span class="nav-icon"><img src="assets/icons/detect-member.svg" alt=""></span><span>Monthly Insights</span></a>
+        <a class="nav-link" href="registration.html"><span class="nav-icon"><img src="assets/icons/register-member.svg" alt=""></span><span>Registration</span></a>
         <a class="nav-link" href="renew-membership.html"><span class="nav-icon"><img src="assets/icons/renew-membership.svg" alt=""></span><span>Renew Membership</span></a>
         <a class="nav-link active" href="member-list.html"><span class="nav-icon"><img src="assets/icons/member-list.svg" alt=""></span><span>Member List</span></a>
       </nav>
@@ -43,31 +44,40 @@
           <div class="topbar-left">
             <button class="menu-toggle" data-menu-toggle aria-label="Toggle navigation">☰</button>
             <div class="page-title">
-              <h2>Member List</h2>
-              <p>Responsive admin table with live backend loading, modal previews, and permanent member deletion.</p>
+              <h2>Member Directory</h2>
+              <p>Live member records with search, quick actions, and direct links to existing-member lookup and new registration.</p>
             </div>
           </div>
           <div class="topbar-actions">
             <div class="search-shell">
               <span>⌕</span>
-              <input type="text" placeholder="Search by member, plan, or status" data-member-search>
+              <input type="text" placeholder="Search Name or GYM ID" data-member-search>
+              <button class="button-ghost member-search-button" type="button" data-member-search-submit>Search</button>
             </div>
-            <a class="button hide-mobile" href="monthly-insights.html">+ Monthly Insights</a>
           </div>
         </header>
 
         <section class="card">
           <div class="card-head">
             <div>
-              <h3 class="card-title">Member Directory</h3>
-              <p class="card-subtitle">Filter chips are demo-only style toggles; search filters the visible rows on this page.</p>
+              <h3 class="card-title">Existing Members</h3>
+              <p class="card-subtitle">Search by member name or GYM ID, then combine it with member status or plan filters.</p>
               <p class="helper" data-member-directory-note style="margin-top: 10px;">Trying to load the live backend member directory.</p>
+              <div class="member-directory-toolbar">
+                <div class="filter-row" data-filter-group data-member-filter-group>
+                  <button class="filter-chip active" type="button" data-filter data-filter-value="all">All</button>
+                  <button class="filter-chip" type="button" data-filter data-filter-value="active">Active</button>
+                  <button class="filter-chip" type="button" data-filter data-filter-value="expired">Expired</button>
+                  <button class="filter-chip" type="button" data-filter data-filter-value="monthly">Monthly</button>
+                  <button class="filter-chip" type="button" data-filter data-filter-value="single-day">Single Day</button>
+                </div>
+              </div>
             </div>
-            <div class="filter-row" data-filter-group>
-              <button class="filter-chip active" type="button" data-filter>All</button>
-              <button class="filter-chip" type="button" data-filter>Active</button>
-              <button class="filter-chip" type="button" data-filter>Renew</button>
-              <button class="filter-chip" type="button" data-filter>Single Day</button>
+            <div class="card-head-aside">
+              <div class="panel-actions">
+                <a class="button-secondary" href="existing-member.html">Add Existing Member</a>
+                <a class="button" href="registration.html">Registration Page</a>
+              </div>
             </div>
           </div>
           <div class="card-body">
@@ -111,7 +121,7 @@
                       </div>
                     </td>
                     <td data-label="Plan">Monthly Payment</td>
-                    <td data-label="Status"><span class="tag tag-warning">Renew</span></td>
+                    <td data-label="Status"><span class="tag tag-danger">Expired</span></td>
                     <td data-label="Last Visit">Today, 5:31 PM</td>
                     <td data-label="Expiry">Apr 20, 2026</td>
                     <td data-label="Action"><a class="button-ghost" href="renew-membership.html">Renew</a></td>
@@ -185,7 +195,7 @@
             </div>
 
             <div class="empty-state" data-empty-state hidden>
-              No members match the current search.
+              No Member Data Exist
             </div>
           </div>
         </section>

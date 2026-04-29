@@ -4,7 +4,11 @@ const fs = require("node:fs/promises");
 const path = require("node:path");
 const { createHash, randomUUID } = require("node:crypto");
 const {
+  buildExpiryDate,
   buildMatcherTemplateFromScanPayload,
+  deriveMembershipPresentation,
+  resolveEffectiveExpiryDate,
+  resolveSubscriptionStartAt,
   sanitizeMatcherTemplate
 } = require("./service");
 
@@ -12,20 +16,28 @@ const STORE_PATH = path.resolve(__dirname, "../../../data/local-member-store.jso
 const DEFAULT_MEMBER_SEQUENCE = 1200;
 const PLAN_CATALOG = {
   MONTHLY: {
+    id: "MONTHLY",
     plan: "Monthly Payment",
     planCode: "MONTHLY",
     amountPaid: 1999,
     durationDays: 30,
+    statusOnEnroll: "active",
     status: "Active",
-    action: "View"
+    action: "View",
+    description: "Standard monthly gym membership.",
+    sortOrder: 1
   },
   DAY_PASS: {
+    id: "DAY_PASS",
     plan: "Single Day Access",
     planCode: "DAY_PASS",
     amountPaid: 250,
     durationDays: 1,
+    statusOnEnroll: "day_pass",
     status: "Day Pass",
-    action: "View"
+    action: "View",
+    description: "Valid until the gym closes for the day.",
+    sortOrder: 2
   }
 };
 
@@ -58,6 +70,39 @@ const normalizeFingerLabel = (value) =>
     .trim()
     .replace(/\s+/g, "_")
     .toUpperCase();
+
+const resolveMembershipStartDate = (value, fallback = new Date()) => {
+  if (!value) {
+    return fallback;
+  }
+
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(value).trim());
+  if (!match) {
+    throw new Error("Member starting date must use the YYYY-MM-DD format.");
+  }
+
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  const resolved = new Date(year, month - 1, day, 0, 0, 0, 0);
+
+  if (
+    Number.isNaN(resolved.getTime()) ||
+    resolved.getFullYear() !== year ||
+    resolved.getMonth() !== month - 1 ||
+    resolved.getDate() !== day
+  ) {
+    throw new Error("Member starting date is invalid.");
+  }
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  if (resolved.getTime() > today.getTime()) {
+    throw new Error("Member starting date cannot be in the future.");
+  }
+
+  return resolved;
+};
 
 const createStatusError = (message, statusCode) => {
   const error = new Error(message);
@@ -99,35 +144,109 @@ const writeStore = async (store) => {
 };
 
 const formatExpiryDate = (planCode, now) => {
-  const expiryDate = new Date(now);
-
-  if (planCode === "DAY_PASS") {
-    expiryDate.setHours(21, 0, 0, 0);
-    if (expiryDate <= now) {
-      expiryDate.setDate(expiryDate.getDate() + 1);
-    }
-    return expiryDate.toISOString();
-  }
-
-  expiryDate.setDate(expiryDate.getDate() + PLAN_CATALOG[planCode].durationDays);
+  const plan = PLAN_CATALOG[planCode];
+  const expiryDate = buildExpiryDate(
+    planCode,
+    plan?.durationDays || 30,
+    now
+  );
   return expiryDate.toISOString();
 };
 
 const buildMemberResponse = (entry) => ({
-  id: entry.id,
-  memberId: entry.memberId,
-  fullName: entry.fullName,
-  mobileNumber: entry.mobileNumber,
-  plan: entry.plan,
-  planCode: entry.planCode,
-  status: entry.status,
-  lastVisitAt: entry.lastVisitAt,
-  lastScanAt: entry.lastScanAt,
-  expiryDate: entry.expiryDate,
-  action: entry.action,
-  registeredAt: entry.registeredAt,
-  amountPaid: entry.amountPaid
+  ...(() => {
+    const membershipPresentation = deriveMembershipPresentation({
+      status: entry.status,
+      action: entry.action,
+      planCode: entry.planCode,
+      startedAt: entry.subscriptionStartedAt || entry.registeredAt,
+      expiryDate: entry.expiryDate
+    });
+    const effectiveExpiryDate = resolveEffectiveExpiryDate({
+      planCode: entry.planCode,
+      startedAt: entry.subscriptionStartedAt || entry.registeredAt,
+      expiryDate: entry.expiryDate
+    });
+
+    return {
+      id: entry.id,
+      memberId: entry.memberId,
+      fullName: entry.fullName,
+      mobileNumber: entry.mobileNumber,
+      plan: entry.plan,
+      planCode: entry.planCode,
+      status: membershipPresentation.status,
+      lastVisitAt: entry.lastVisitAt,
+      lastScanAt: entry.lastScanAt,
+      expiryDate: effectiveExpiryDate
+        ? effectiveExpiryDate.toISOString()
+        : entry.expiryDate,
+      action: membershipPresentation.action,
+      registeredAt: entry.registeredAt,
+      amountPaid: entry.amountPaid
+    };
+  })()
 });
+
+const buildPlanResponse = (plan) => ({
+  id: plan.id,
+  planCode: plan.planCode,
+  planName: plan.plan,
+  durationDays: plan.durationDays,
+  price: Number(plan.amountPaid),
+  statusOnEnroll: plan.statusOnEnroll,
+  actionLabel: plan.action,
+  description: plan.description,
+  sortOrder: plan.sortOrder
+});
+
+const buildCurrentPlanFromMember = (member) => {
+  const plan = PLAN_CATALOG[normalizePlanCode(member?.planCode)];
+  if (!plan) {
+    return null;
+  }
+
+  return {
+    subscriptionId: `${member.id}:${plan.planCode}`,
+    planId: plan.id,
+    planCode: plan.planCode,
+    planName: plan.plan,
+    durationDays: plan.durationDays,
+    price: Number(plan.amountPaid),
+    amountPaid: Number(member.amountPaid ?? plan.amountPaid),
+    description: plan.description,
+    statusOnEnroll: plan.statusOnEnroll,
+    actionLabel: plan.action,
+    subscriptionStatus: "active",
+    startedAt: member.subscriptionStartedAt || member.registeredAt || null,
+    expiresAt: (() => {
+      const effectiveExpiryDate = resolveEffectiveExpiryDate({
+        planCode: plan.planCode,
+        startedAt: member.subscriptionStartedAt || member.registeredAt || null,
+        expiryDate: member.expiryDate || null
+      });
+      return effectiveExpiryDate ? effectiveExpiryDate.toISOString() : member.expiryDate || null;
+    })()
+  };
+};
+
+const buildVisitWindowEnd = (startedAt, expiresAt) => {
+  const startedDate = startedAt ? new Date(startedAt) : null;
+  const expiryDate = expiresAt ? new Date(expiresAt) : null;
+
+  if (!startedDate || Number.isNaN(startedDate.getTime())) {
+    return expiryDate && !Number.isNaN(expiryDate.getTime()) ? expiryDate : null;
+  }
+
+  const visitWindowEnd = new Date(startedDate);
+  visitWindowEnd.setDate(visitWindowEnd.getDate() + 30);
+
+  if (expiryDate && !Number.isNaN(expiryDate.getTime()) && expiryDate < visitWindowEnd) {
+    return expiryDate;
+  }
+
+  return visitWindowEnd;
+};
 
 const getLookupOutcomeFromMember = (member, now = new Date()) => {
   const normalizedStatus = String(member.status || "").toLowerCase();
@@ -173,6 +292,58 @@ const listMembersFromFileStore = async (limit = 100) => {
     .map(buildMemberResponse);
 };
 
+const listMembershipPlansFromFileStore = async () =>
+  Object.values(PLAN_CATALOG)
+    .slice()
+    .sort((left, right) => left.sortOrder - right.sortOrder)
+    .map(buildPlanResponse);
+
+const getMemberRenewalContextFromFileStore = async (memberUuid) => {
+  const normalizedMemberUuid = String(memberUuid || "").trim();
+
+  if (!normalizedMemberUuid) {
+    throw new Error("Member id is required before loading renewal data.");
+  }
+
+  const store = await readStore();
+  const member = store.members.find((entry) => entry.id === normalizedMemberUuid);
+
+  if (!member) {
+    throw createStatusError("Member record could not be found.", 404);
+  }
+
+  const currentPlan = buildCurrentPlanFromMember(member);
+  const memberResponse = buildMemberResponse(member);
+  const visitWindowEnd = currentPlan
+    ? buildVisitWindowEnd(currentPlan.startedAt, currentPlan.expiresAt)
+    : null;
+  const totalVisitsInPlanMonth = currentPlan
+    ? store.scanEvents.filter((event) => {
+        const capturedAt = event?.capturedAt ? new Date(event.capturedAt) : null;
+        return (
+          event?.matchedMemberId === normalizedMemberUuid &&
+          event?.matchStatus === "matched" &&
+          capturedAt instanceof Date &&
+          !Number.isNaN(capturedAt.getTime()) &&
+          capturedAt >= new Date(currentPlan.startedAt) &&
+          (!visitWindowEnd || capturedAt <= visitWindowEnd)
+        );
+      }).length
+    : 0;
+
+  return {
+    member: memberResponse,
+    currentPlan,
+    metrics: {
+      lastFingerprintDetectedAt: member.lastScanAt || null,
+      expiryDate: currentPlan?.expiresAt || memberResponse.expiryDate || null,
+      totalVisitsInPlanMonth,
+      visitWindowStartedAt: currentPlan?.startedAt || null,
+      visitWindowEndsAt: visitWindowEnd ? visitWindowEnd.toISOString() : null
+    }
+  };
+};
+
 const listFingerprintMatchCandidatesFromFileStore = async () => {
   const store = await readStore();
 
@@ -205,6 +376,7 @@ const registerMemberFromScanToFileStore = async ({
   fullName,
   mobileNumber,
   planCode,
+  startDate,
   fingerLabel,
   scanPayload
 }) => {
@@ -260,6 +432,12 @@ const registerMemberFromScanToFileStore = async ({
 
   const store = await readStore();
   const now = new Date();
+  const membershipStartAt = resolveMembershipStartDate(startDate, now);
+  const subscriptionStartAt = resolveSubscriptionStartAt(
+    normalizedPlanCode,
+    membershipStartAt,
+    now
+  );
   const memberNumber = String(store.sequence).padStart(4, "0");
   const memberId = `GYM-${memberNumber}`;
   const memberUuid = randomUUID();
@@ -275,8 +453,9 @@ const registerMemberFromScanToFileStore = async ({
     planCode: plan.planCode,
     status: plan.status,
     action: plan.action,
-    expiryDate: formatExpiryDate(normalizedPlanCode, now),
-    registeredAt: now.toISOString(),
+    expiryDate: formatExpiryDate(normalizedPlanCode, subscriptionStartAt),
+    registeredAt: subscriptionStartAt.toISOString(),
+    subscriptionStartedAt: subscriptionStartAt.toISOString(),
     lastVisitAt: now.toISOString(),
     lastScanAt: now.toISOString(),
     amountPaid: plan.amountPaid,
@@ -426,11 +605,80 @@ const deleteMemberFromFileStore = async (memberUuid) => {
   };
 };
 
+const renewMemberMembershipInFileStore = async ({ memberUuid, planCode }) => {
+  const normalizedMemberUuid = String(memberUuid || "").trim();
+  const normalizedPlanCode = normalizePlanCode(planCode);
+
+  if (!normalizedMemberUuid) {
+    throw new Error("Member id is required before renewal.");
+  }
+
+  const store = await readStore();
+  const member = store.members.find((entry) => entry.id === normalizedMemberUuid);
+
+  if (!member) {
+    throw createStatusError("Member record could not be found.", 404);
+  }
+
+  const selectedPlan = PLAN_CATALOG[normalizedPlanCode];
+  if (!selectedPlan) {
+    throw new Error(`Membership plan '${normalizedPlanCode}' does not exist.`);
+  }
+
+  const previousPlan = buildCurrentPlanFromMember(member);
+  const now = new Date();
+  member.plan = selectedPlan.plan;
+  member.planCode = selectedPlan.planCode;
+  member.status = selectedPlan.status;
+  member.action = selectedPlan.action;
+  member.amountPaid = selectedPlan.amountPaid;
+  member.expiryDate = formatExpiryDate(selectedPlan.planCode, now);
+  member.subscriptionStartedAt = now.toISOString();
+  member.renewalHistory = Array.isArray(member.renewalHistory)
+    ? member.renewalHistory
+    : [];
+  member.renewalHistory.push({
+    renewedAt: now.toISOString(),
+    previousPlanCode: previousPlan?.planCode || null,
+    previousPlanName: previousPlan?.planName || null,
+    nextPlanCode: selectedPlan.planCode,
+    nextPlanName: selectedPlan.plan
+  });
+
+  store.scanEvents.push({
+    scanReference: `LOCAL-RENEW-${now.getTime()}-${randomUUID().slice(0, 8)}`,
+    matchedMemberId: normalizedMemberUuid,
+    fingerprintId: member.fingerprint?.fingerprintId || null,
+    matchStatus: "registered",
+    capturedAt: now.toISOString(),
+    source: "renewal"
+  });
+  await writeStore(store);
+
+  const context = await getMemberRenewalContextFromFileStore(normalizedMemberUuid);
+
+  return {
+    member: context.member,
+    currentPlan: context.currentPlan,
+    metrics: context.metrics,
+    previousPlan: previousPlan
+      ? {
+          planCode: previousPlan.planCode,
+          planName: previousPlan.planName,
+          expiresAt: previousPlan.expiresAt
+        }
+      : null
+  };
+};
+
 module.exports = {
   deleteMemberFromFileStore,
+  getMemberRenewalContextFromFileStore,
   listFingerprintMatchCandidatesFromFileStore,
+  listMembershipPlansFromFileStore,
   listMembersFromFileStore,
   registerMemberFromScanToFileStore,
+  renewMemberMembershipInFileStore,
   resolveFingerprintScanResultFromFileStore,
   STORE_PATH
 };

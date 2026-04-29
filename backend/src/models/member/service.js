@@ -6,6 +6,23 @@ const { query, withTransaction } = require("../../db/postgres");
 const PLAN_CODE_DEFAULT = "MONTHLY";
 const FINGER_LABEL_DEFAULT = "RIGHT_INDEX";
 const MATCHED_SCAN_THRESHOLD = Math.floor(0x7fffffff / 100000);
+const MEMBERSHIP_TEST_WINDOW_ENABLED = !["false", "0", "off", "no"].includes(
+  String(process.env.TEST_MEMBERSHIP_SHORT_WINDOW || "true")
+    .trim()
+    .toLowerCase()
+);
+const MEMBERSHIP_TEST_EXPIRY_MINUTES = Math.max(
+  0,
+  Number(process.env.TEST_MEMBERSHIP_EXPIRY_MINUTES || 2)
+);
+const MEMBERSHIP_TEST_DUE_SOON_MINUTES = Math.max(
+  0,
+  Number(process.env.TEST_MEMBERSHIP_DUE_SOON_MINUTES || 1)
+);
+const MEMBERSHIP_TEST_DAY_PASS_EXPIRY_MINUTES = Math.max(
+  0,
+  Number(process.env.TEST_DAY_PASS_EXPIRY_MINUTES || 1)
+);
 const ANSI_FINGER_POSITIONS = {
   UNKNOWN: 0,
   RIGHT_THUMB: 1,
@@ -33,6 +50,14 @@ const DIRECTORY_QUERY = `
     directory.registered_at,
     directory.plan_code,
     directory.amount_paid,
+    (
+      SELECT subscription.started_at
+      FROM member_subscriptions AS subscription
+      WHERE subscription.member_id = directory.id
+        AND subscription.is_current = TRUE
+      ORDER BY subscription.started_at DESC
+      LIMIT 1
+    ) AS subscription_started_at,
     member.last_scan_at
   FROM member_directory_view AS directory
   JOIN members AS member
@@ -59,6 +84,39 @@ const normalizeFingerLabel = (value) => {
   return normalized || FINGER_LABEL_DEFAULT;
 };
 
+const resolveMembershipStartDate = (value, fallback = new Date()) => {
+  if (!value) {
+    return fallback;
+  }
+
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(value).trim());
+  if (!match) {
+    throw new Error("Member starting date must use the YYYY-MM-DD format.");
+  }
+
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  const resolved = new Date(year, month - 1, day, 0, 0, 0, 0);
+
+  if (
+    Number.isNaN(resolved.getTime()) ||
+    resolved.getFullYear() !== year ||
+    resolved.getMonth() !== month - 1 ||
+    resolved.getDate() !== day
+  ) {
+    throw new Error("Member starting date is invalid.");
+  }
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  if (resolved.getTime() > today.getTime()) {
+    throw new Error("Member starting date cannot be in the future.");
+  }
+
+  return resolved;
+};
+
 const titleCaseStatus = (value) => {
   if (!value) {
     return "Inactive";
@@ -74,8 +132,38 @@ const titleCaseStatus = (value) => {
     .join(" ");
 };
 
+const shouldUseMembershipTestWindow = (planCode) =>
+  MEMBERSHIP_TEST_WINDOW_ENABLED &&
+  planCode !== "DAY_PASS" &&
+  MEMBERSHIP_TEST_EXPIRY_MINUTES > 0;
+
+const shouldUseDayPassTestWindow = (planCode) =>
+  MEMBERSHIP_TEST_WINDOW_ENABLED &&
+  planCode === "DAY_PASS" &&
+  MEMBERSHIP_TEST_DAY_PASS_EXPIRY_MINUTES > 0;
+
+const shouldUseImmediateTestWindow = (planCode) =>
+  shouldUseMembershipTestWindow(planCode) ||
+  shouldUseDayPassTestWindow(planCode);
+
+const resolveSubscriptionStartAt = (
+  planCode,
+  membershipStartAt,
+  now = new Date()
+) =>
+  shouldUseImmediateTestWindow(planCode)
+    ? new Date(now)
+    : membershipStartAt;
+
 const buildExpiryDate = (planCode, durationDays, now) => {
   const expiryDate = new Date(now);
+
+  if (shouldUseDayPassTestWindow(planCode)) {
+    expiryDate.setMinutes(
+      expiryDate.getMinutes() + MEMBERSHIP_TEST_DAY_PASS_EXPIRY_MINUTES
+    );
+    return expiryDate;
+  }
 
   if (planCode === "DAY_PASS") {
     expiryDate.setHours(21, 0, 0, 0);
@@ -85,8 +173,93 @@ const buildExpiryDate = (planCode, durationDays, now) => {
     return expiryDate;
   }
 
+  if (shouldUseMembershipTestWindow(planCode)) {
+    expiryDate.setMinutes(expiryDate.getMinutes() + MEMBERSHIP_TEST_EXPIRY_MINUTES);
+    return expiryDate;
+  }
+
   expiryDate.setDate(expiryDate.getDate() + durationDays);
   return expiryDate;
+};
+
+const resolveEffectiveExpiryDate = ({
+  planCode,
+  startedAt,
+  expiryDate
+}) => {
+  const parsedStartDate = startedAt ? new Date(startedAt) : null;
+
+  if (
+    shouldUseMembershipTestWindow(planCode) &&
+    parsedStartDate instanceof Date &&
+    !Number.isNaN(parsedStartDate.getTime())
+  ) {
+    return buildExpiryDate(planCode, 0, parsedStartDate);
+  }
+
+  const parsedExpiryDate = expiryDate ? new Date(expiryDate) : null;
+  if (
+    parsedExpiryDate instanceof Date &&
+    !Number.isNaN(parsedExpiryDate.getTime())
+  ) {
+    return parsedExpiryDate;
+  }
+
+  return null;
+};
+
+const deriveMembershipPresentation = (
+  { status, action, planCode, startedAt, expiryDate },
+  now = new Date()
+) => {
+  const normalizedStatus = String(status || "").trim().toLowerCase();
+  const normalizedPlanCode = String(planCode || "").trim().toUpperCase();
+  const expiry = resolveEffectiveExpiryDate({
+    planCode,
+    startedAt,
+    expiryDate
+  });
+  const hasValidExpiry = expiry instanceof Date && !Number.isNaN(expiry.getTime());
+
+  if (
+    normalizedStatus.includes("hold") ||
+    normalizedStatus.includes("inactive")
+  ) {
+    return {
+      status,
+      action: action || "View"
+    };
+  }
+
+  if (hasValidExpiry && expiry.getTime() <= now.getTime()) {
+    return {
+      status: "Expired",
+      action: "Renew"
+    };
+  }
+
+  if (
+    hasValidExpiry &&
+    MEMBERSHIP_TEST_DUE_SOON_MINUTES > 0 &&
+    normalizedPlanCode !== "DAY_PASS"
+  ) {
+    const dueSoonBoundary = new Date(expiry);
+    dueSoonBoundary.setMinutes(
+      dueSoonBoundary.getMinutes() - MEMBERSHIP_TEST_DUE_SOON_MINUTES
+    );
+
+    if (now.getTime() >= dueSoonBoundary.getTime()) {
+      return {
+        status: "Due Soon",
+        action: action || "View"
+      };
+    }
+  }
+
+  return {
+    status,
+    action: action || "View"
+  };
 };
 
 const buildTemplateHash = (templateData, scanPayload) => {
@@ -243,21 +416,89 @@ const sanitizeMatcherTemplate = (matcherTemplate) => {
   };
 };
 
-const mapDirectoryRow = (row) => ({
+const mapDirectoryRow = (row) => {
+  const membershipPresentation = deriveMembershipPresentation({
+    status: row.status_label,
+    action: row.action_label,
+    planCode: row.plan_code,
+    startedAt: row.subscription_started_at,
+    expiryDate: row.expires_at
+  });
+  const effectiveExpiryDate = resolveEffectiveExpiryDate({
+    planCode: row.plan_code,
+    startedAt: row.subscription_started_at,
+    expiryDate: row.expires_at
+  });
+
+  return {
+    id: row.id,
+    memberId: row.member_id,
+    fullName: row.full_name,
+    mobileNumber: row.mobile_number,
+    plan: row.plan_name,
+    planCode: row.plan_code,
+    status: membershipPresentation.status,
+    lastVisitAt: row.last_visit_at,
+    lastScanAt: row.last_scan_at,
+    expiryDate: effectiveExpiryDate ? effectiveExpiryDate.toISOString() : row.expires_at,
+    action: membershipPresentation.action,
+    registeredAt: row.registered_at,
+    amountPaid: row.amount_paid
+  };
+};
+
+const mapPlanRow = (row) => ({
   id: row.id,
-  memberId: row.member_id,
-  fullName: row.full_name,
-  mobileNumber: row.mobile_number,
-  plan: row.plan_name,
   planCode: row.plan_code,
-  status: row.status_label,
-  lastVisitAt: row.last_visit_at,
-  lastScanAt: row.last_scan_at,
-  expiryDate: row.expires_at,
-  action: row.action_label,
-  registeredAt: row.registered_at,
-  amountPaid: row.amount_paid
+  planName: row.plan_name,
+  durationDays: row.duration_days,
+  price: Number(row.price),
+  statusOnEnroll: row.status_on_enroll,
+  actionLabel: row.action_label,
+  description: row.description,
+  sortOrder: row.sort_order
 });
+
+const mapCurrentSubscriptionRow = (row) => ({
+  subscriptionId: row.subscription_id,
+  planId: row.plan_id,
+  planCode: row.plan_code,
+  planName: row.plan_name,
+  durationDays: row.duration_days,
+  price: Number(row.price),
+  amountPaid: Number(row.amount_paid),
+  description: row.description,
+  statusOnEnroll: row.status_on_enroll,
+  actionLabel: row.action_label,
+  subscriptionStatus: row.subscription_status,
+  startedAt: row.started_at,
+  expiresAt: (() => {
+    const effectiveExpiryDate = resolveEffectiveExpiryDate({
+      planCode: row.plan_code,
+      startedAt: row.started_at,
+      expiryDate: row.expires_at
+    });
+    return effectiveExpiryDate ? effectiveExpiryDate.toISOString() : row.expires_at;
+  })()
+});
+
+const buildVisitWindowEnd = (startedAt, expiresAt) => {
+  const startedDate = startedAt ? new Date(startedAt) : null;
+  const expiryDate = expiresAt ? new Date(expiresAt) : null;
+
+  if (!startedDate || Number.isNaN(startedDate.getTime())) {
+    return expiryDate && !Number.isNaN(expiryDate.getTime()) ? expiryDate : null;
+  }
+
+  const visitWindowEnd = new Date(startedDate);
+  visitWindowEnd.setDate(visitWindowEnd.getDate() + 30);
+
+  if (expiryDate && !Number.isNaN(expiryDate.getTime()) && expiryDate < visitWindowEnd) {
+    return expiryDate;
+  }
+
+  return visitWindowEnd;
+};
 
 const listMembers = async (limit = 100) => {
   const safeLimit = Number.isFinite(limit) ? Math.max(1, Math.min(limit, 250)) : 100;
@@ -269,6 +510,27 @@ const listMembers = async (limit = 100) => {
   );
 
   return result.rows.map(mapDirectoryRow);
+};
+
+const listMembershipPlans = async () => {
+  const result = await query(
+    `
+      SELECT
+        id,
+        plan_code,
+        plan_name,
+        duration_days,
+        price,
+        status_on_enroll,
+        action_label,
+        description,
+        sort_order
+      FROM membership_plans
+      ORDER BY sort_order ASC, plan_name ASC
+    `
+  );
+
+  return result.rows.map(mapPlanRow);
 };
 
 const fetchMemberById = async (client, memberUuid) => {
@@ -284,6 +546,115 @@ const fetchMemberById = async (client, memberUuid) => {
   }
 
   return mapDirectoryRow(result.rows[0]);
+};
+
+const fetchCurrentSubscriptionByMemberId = async (executor, memberUuid) => {
+  const result = await executor.query(
+    `
+      SELECT
+        subscription.id AS subscription_id,
+        subscription.plan_id,
+        subscription.subscription_status,
+        subscription.started_at,
+        subscription.expires_at,
+        subscription.amount_paid,
+        plan.plan_code,
+        plan.plan_name,
+        plan.duration_days,
+        plan.price,
+        plan.description,
+        plan.status_on_enroll,
+        plan.action_label
+      FROM member_subscriptions AS subscription
+      JOIN membership_plans AS plan
+        ON plan.id = subscription.plan_id
+      WHERE subscription.member_id = $1
+        AND subscription.is_current = TRUE
+      ORDER BY subscription.started_at DESC
+      LIMIT 1
+    `,
+    [memberUuid]
+  );
+
+  if (result.rowCount === 0) {
+    return null;
+  }
+
+  return mapCurrentSubscriptionRow(result.rows[0]);
+};
+
+const getTotalVisitsInPlanMonth = async (
+  executor,
+  memberUuid,
+  currentSubscription
+) => {
+  if (!currentSubscription?.startedAt) {
+    return 0;
+  }
+
+  const visitWindowEnd =
+    buildVisitWindowEnd(
+      currentSubscription.startedAt,
+      currentSubscription.expiresAt
+    ) || new Date();
+  const result = await executor.query(
+    `
+      SELECT COUNT(*)::INT AS total_visits
+      FROM attendance_logs
+      WHERE member_id = $1
+        AND result = 'granted'
+        AND logged_at >= $2
+        AND logged_at <= $3
+    `,
+    [memberUuid, currentSubscription.startedAt, visitWindowEnd]
+  );
+
+  return Number(result.rows[0]?.total_visits || 0);
+};
+
+const getMemberRenewalContext = async (memberUuid) => {
+  const normalizedMemberUuid = String(memberUuid || "").trim();
+
+  if (!normalizedMemberUuid) {
+    throw new Error("Member id is required before loading renewal data.");
+  }
+
+  const memberResult = await query(
+    `${DIRECTORY_QUERY}
+     WHERE directory.id = $1
+     LIMIT 1`,
+    [normalizedMemberUuid]
+  );
+
+  if (memberResult.rowCount === 0) {
+    throw createStatusError("Member record could not be found.", 404);
+  }
+
+  const member = mapDirectoryRow(memberResult.rows[0]);
+  const currentPlan = await fetchCurrentSubscriptionByMemberId(
+    { query },
+    normalizedMemberUuid
+  );
+  const totalVisitsInPlanMonth = await getTotalVisitsInPlanMonth(
+    { query },
+    normalizedMemberUuid,
+    currentPlan
+  );
+  const visitWindowEndsAt = currentPlan
+    ? buildVisitWindowEnd(currentPlan.startedAt, currentPlan.expiresAt)
+    : null;
+
+  return {
+    member,
+    currentPlan,
+    metrics: {
+      lastFingerprintDetectedAt: member.lastScanAt,
+      expiryDate: member.expiryDate,
+      totalVisitsInPlanMonth,
+      visitWindowStartedAt: currentPlan?.startedAt || null,
+      visitWindowEndsAt: visitWindowEndsAt ? visitWindowEndsAt.toISOString() : null
+    }
+  };
 };
 
 const listFingerprintMatchCandidates = async () => {
@@ -660,10 +1031,199 @@ const deleteMemberPermanently = async (memberUuid) => {
   });
 };
 
+const renewMemberMembership = async ({ memberUuid, planCode }) => {
+  const normalizedMemberUuid = String(memberUuid || "").trim();
+  const normalizedPlanCode = normalizePlanCode(planCode);
+
+  if (!normalizedMemberUuid) {
+    throw new Error("Member id is required before renewal.");
+  }
+
+  return withTransaction(async (client) => {
+    const memberResult = await client.query(
+      `
+        SELECT
+          id,
+          member_id,
+          full_name
+        FROM members
+        WHERE id = $1
+        LIMIT 1
+      `,
+      [normalizedMemberUuid]
+    );
+
+    if (memberResult.rowCount === 0) {
+      throw createStatusError("Member record could not be found.", 404);
+    }
+
+    const planResult = await client.query(
+      `
+        SELECT
+          id,
+          plan_code,
+          plan_name,
+          duration_days,
+          price,
+          status_on_enroll,
+          action_label,
+          description,
+          sort_order
+        FROM membership_plans
+        WHERE plan_code = $1
+        LIMIT 1
+      `,
+      [normalizedPlanCode]
+    );
+
+    if (planResult.rowCount === 0) {
+      throw new Error(`Membership plan '${normalizedPlanCode}' does not exist.`);
+    }
+
+    const selectedPlan = mapPlanRow(planResult.rows[0]);
+    const previousSubscription = await fetchCurrentSubscriptionByMemberId(
+      client,
+      normalizedMemberUuid
+    );
+
+    if (previousSubscription?.subscriptionId) {
+      await client.query(
+        `
+          UPDATE member_subscriptions
+          SET
+            is_current = FALSE,
+            subscription_status = CASE
+              WHEN subscription_status = 'active' THEN 'expired'
+              ELSE subscription_status
+            END
+          WHERE id = $1
+        `,
+        [previousSubscription.subscriptionId]
+      );
+    }
+
+    const now = new Date();
+    const expiresAt = buildExpiryDate(
+      selectedPlan.planCode,
+      selectedPlan.durationDays,
+      now
+    );
+    const statusLabel = titleCaseStatus(selectedPlan.statusOnEnroll);
+    const renewalNotes = previousSubscription
+      ? `Renewed from ${previousSubscription.planName} to ${selectedPlan.planName}.`
+      : `Renewed to ${selectedPlan.planName}.`;
+
+    await client.query(
+      `
+        INSERT INTO member_subscriptions (
+          member_id,
+          plan_id,
+          subscription_status,
+          started_at,
+          expires_at,
+          amount_paid,
+          is_current
+        )
+        VALUES ($1, $2, 'active', $3, $4, $5, TRUE)
+      `,
+      [
+        normalizedMemberUuid,
+        selectedPlan.id,
+        now,
+        expiresAt,
+        selectedPlan.price
+      ]
+    );
+
+    await client.query(
+      `
+        UPDATE members
+        SET
+          member_status = $2,
+          current_action = $3
+        WHERE id = $1
+      `,
+      [
+        normalizedMemberUuid,
+        selectedPlan.statusOnEnroll,
+        selectedPlan.actionLabel
+      ]
+    );
+
+    await client.query(
+      `
+        INSERT INTO attendance_logs (
+          member_id,
+          logged_at,
+          status_label,
+          action_label,
+          plan_snapshot,
+          result,
+          source,
+          notes
+        )
+        VALUES ($1, $2, $3, $4, $5, 'registered', 'renewal', $6)
+      `,
+      [
+        normalizedMemberUuid,
+        now,
+        statusLabel,
+        selectedPlan.actionLabel,
+        selectedPlan.planName,
+        renewalNotes
+      ]
+    );
+
+    const context = await (async () => {
+      const member = await fetchMemberById(client, normalizedMemberUuid);
+      const currentPlan = await fetchCurrentSubscriptionByMemberId(
+        client,
+        normalizedMemberUuid
+      );
+      const totalVisitsInPlanMonth = await getTotalVisitsInPlanMonth(
+        client,
+        normalizedMemberUuid,
+        currentPlan
+      );
+      const visitWindowEndsAt = currentPlan
+        ? buildVisitWindowEnd(currentPlan.startedAt, currentPlan.expiresAt)
+        : null;
+
+      return {
+        member,
+        currentPlan,
+        metrics: {
+          lastFingerprintDetectedAt: member.lastScanAt,
+          expiryDate: member.expiryDate,
+          totalVisitsInPlanMonth,
+          visitWindowStartedAt: currentPlan?.startedAt || null,
+          visitWindowEndsAt: visitWindowEndsAt
+            ? visitWindowEndsAt.toISOString()
+            : null
+        }
+      };
+    })();
+
+    return {
+      member: context.member,
+      currentPlan: context.currentPlan,
+      metrics: context.metrics,
+      previousPlan: previousSubscription
+        ? {
+            planCode: previousSubscription.planCode,
+            planName: previousSubscription.planName,
+            expiresAt: previousSubscription.expiresAt
+          }
+        : null
+    };
+  });
+};
+
 const registerMemberFromScan = async ({
   fullName,
   mobileNumber,
   planCode,
+  startDate,
   fingerLabel,
   scanPayload
 }) => {
@@ -716,6 +1276,7 @@ const registerMemberFromScan = async ({
 
   return withTransaction(async (client) => {
     const now = new Date();
+    const membershipStartAt = resolveMembershipStartDate(startDate, now);
     const planResult = await client.query(
       `
         SELECT
@@ -742,7 +1303,16 @@ const registerMemberFromScan = async ({
       "SELECT LPAD(NEXTVAL('member_id_sequence')::TEXT, 4, '0') AS next_member_number"
     );
     const memberId = `GYM-${memberNumberResult.rows[0].next_member_number}`;
-    const expiresAt = buildExpiryDate(plan.plan_code, plan.duration_days, now);
+    const subscriptionStartAt = resolveSubscriptionStartAt(
+      plan.plan_code,
+      membershipStartAt,
+      now
+    );
+    const expiresAt = buildExpiryDate(
+      plan.plan_code,
+      plan.duration_days,
+      subscriptionStartAt
+    );
     const scanReference = `SCAN-${now.getTime()}-${randomUUID().slice(0, 8)}`;
     const templateFormat = "ansi-raw-image";
     const templateHash = buildTemplateHash(templateData, scanPayloadToPersist);
@@ -761,7 +1331,7 @@ const registerMemberFromScan = async ({
           last_scan_at,
           last_visit_at
         )
-        VALUES ($1, $2, $3, $4, $5, $6, $6, $6)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $7)
         RETURNING id
       `,
       [
@@ -770,6 +1340,7 @@ const registerMemberFromScan = async ({
         normalizedPhone,
         plan.status_on_enroll,
         actionLabel,
+        subscriptionStartAt,
         now
       ]
     );
@@ -789,7 +1360,7 @@ const registerMemberFromScan = async ({
         )
         VALUES ($1, $2, 'active', $3, $4, $5, TRUE)
       `,
-      [memberUuid, plan.id, now, expiresAt, plan.price]
+      [memberUuid, plan.id, subscriptionStartAt, expiresAt, plan.price]
     );
 
     const fingerprintInsert = await client.query(
@@ -880,7 +1451,7 @@ const registerMemberFromScan = async ({
         statusLabel,
         actionLabel,
         plan.plan_name,
-        "Registered from unmatched fingerprint scan."
+        "Registered from captured fingerprint template."
       ]
     );
 
@@ -900,11 +1471,18 @@ const registerMemberFromScan = async ({
 };
 
 module.exports = {
+  buildExpiryDate,
   buildMatcherTemplateFromScanPayload,
   deleteMemberPermanently,
+  deriveMembershipPresentation,
+  getMemberRenewalContext,
   listFingerprintMatchCandidates,
+  listMembershipPlans,
   listMembers,
   registerMemberFromScan,
+  resolveEffectiveExpiryDate,
+  resolveSubscriptionStartAt,
+  renewMemberMembership,
   resolveFingerprintScanResult,
   sanitizeMatcherTemplate
 };

@@ -9,16 +9,22 @@ const { spawn } = require("node:child_process");
 const {
   buildMatcherTemplateFromScanPayload,
   deleteMemberPermanently,
+  getMemberRenewalContext,
   listFingerprintMatchCandidates,
+  listMembershipPlans,
   listMembers,
   registerMemberFromScan,
+  renewMemberMembership,
   resolveFingerprintScanResult
 } = require("../../models/member/service");
 const {
   deleteMemberFromFileStore,
+  getMemberRenewalContextFromFileStore,
   listFingerprintMatchCandidatesFromFileStore,
+  listMembershipPlansFromFileStore,
   listMembersFromFileStore,
   registerMemberFromScanToFileStore,
+  renewMemberMembershipInFileStore,
   resolveFingerprintScanResultFromFileStore,
   STORE_PATH
 } = require("../../models/member/file-store");
@@ -213,6 +219,10 @@ const toServiceStatusCode = (error) => {
     return 400;
   }
 
+  if (/duplicate key value violates unique constraint/i.test(message)) {
+    return 409;
+  }
+
   return 500;
 };
 
@@ -229,6 +239,186 @@ const isDatabaseUnavailableError = (error) => {
     /role ".+" does not exist/i.test(message) ||
     /getaddrinfo/i.test(message)
   );
+};
+
+const isFileStoreFallbackAllowed = () => {
+  const explicitValue = String(process.env.ALLOW_FILE_STORE_FALLBACK || "")
+    .trim()
+    .toLowerCase();
+
+  if (["true", "1", "yes", "on"].includes(explicitValue)) {
+    return true;
+  }
+
+  if (["false", "0", "no", "off"].includes(explicitValue)) {
+    return false;
+  }
+
+  return String(process.env.NODE_ENV || "").trim().toLowerCase() !== "production";
+};
+
+const createFileStoreFallbackDisabledError = () => {
+  const error = new Error(
+    "PostgreSQL is unavailable and local fallback is disabled. Production deployments must use PostgreSQL before member data can be read or saved."
+  );
+  error.statusCode = 503;
+  return error;
+};
+
+const buildRegistrationInput = (body = {}) => ({
+  fullName: body.fullName,
+  mobileNumber: body.mobileNumber,
+  planCode: body.planCode,
+  startDate: body.startDate,
+  fingerLabel: body.fingerLabel,
+  scanPayload: body.scanPayload
+});
+
+const resolveTrustedMatchedFingerprintId = ({
+  matcherResult,
+  probeTemplate,
+  candidates
+}) => {
+  const probeTemplateData = String(probeTemplate?.templateDataBase64 || "").trim();
+  const exactMatchCandidate = Array.isArray(candidates)
+    ? candidates.find(
+        (entry) =>
+          String(entry?.matcherTemplate?.templateDataBase64 || "").trim() ===
+          probeTemplateData
+      )
+    : null;
+
+  if (exactMatchCandidate?.fingerprintId) {
+    return String(exactMatchCandidate.fingerprintId).trim();
+  }
+
+  if (!matcherResult?.matched) {
+    return null;
+  }
+
+  const matchedFingerprintId = String(
+    matcherResult.matchedFingerprintId || ""
+  ).trim();
+  const numericBestScore = Number(matcherResult.bestScore);
+
+  // The raw-image demo matcher can report zero-distance matches for unrelated
+  // probe bytes. Accept exact payload matches first, then only trust the matcher
+  // when it returns a positive score below the configured threshold.
+  if (!matchedFingerprintId || !Number.isFinite(numericBestScore) || numericBestScore <= 0) {
+    return null;
+  }
+
+  return matchedFingerprintId;
+};
+
+const registerMemberWithFallback = async (registrationInput) => {
+  let result;
+  let source = "postgres";
+  let fallbackReason = null;
+
+  try {
+    result = await registerMemberFromScan(registrationInput);
+  } catch (error) {
+    if (!isDatabaseUnavailableError(error)) {
+      throw error;
+    }
+
+    if (!isFileStoreFallbackAllowed()) {
+      throw createFileStoreFallbackDisabledError();
+    }
+
+    result = await registerMemberFromScanToFileStore(registrationInput);
+    source = "file-store";
+    fallbackReason = error.message;
+  }
+
+  return {
+    source,
+    fallbackReason,
+    result
+  };
+};
+
+const handleMemberRegistration = async (request, response, successLabel) => {
+  try {
+    const body = await readBody(request);
+    const registrationInput = buildRegistrationInput(body);
+    const { source, fallbackReason, result } = await registerMemberWithFallback(registrationInput);
+
+    json(request, response, 201, {
+      success: true,
+      message:
+        source === "postgres"
+          ? `${successLabel} saved successfully to PostgreSQL.`
+          : `${successLabel} saved successfully using the backend local store.`,
+      source,
+      fallbackReason,
+      ...result
+    });
+  } catch (error) {
+    json(request, response, toServiceStatusCode(error), {
+      success: false,
+      message: error.message
+    });
+  }
+};
+
+const loadMemberRenewalContextWithFallback = async (memberUuid) => {
+  let source = "postgres";
+  let context;
+  let plans;
+
+  try {
+    [context, plans] = await Promise.all([
+      getMemberRenewalContext(memberUuid),
+      listMembershipPlans()
+    ]);
+  } catch (error) {
+    if (!isDatabaseUnavailableError(error)) {
+      throw error;
+    }
+
+    if (!isFileStoreFallbackAllowed()) {
+      throw createFileStoreFallbackDisabledError();
+    }
+
+    [context, plans] = await Promise.all([
+      getMemberRenewalContextFromFileStore(memberUuid),
+      listMembershipPlansFromFileStore()
+    ]);
+    source = "file-store";
+  }
+
+  return {
+    source,
+    context,
+    plans
+  };
+};
+
+const renewMemberWithFallback = async ({ memberUuid, planCode }) => {
+  let source = "postgres";
+  let result;
+
+  try {
+    result = await renewMemberMembership({ memberUuid, planCode });
+  } catch (error) {
+    if (!isDatabaseUnavailableError(error)) {
+      throw error;
+    }
+
+    if (!isFileStoreFallbackAllowed()) {
+      throw createFileStoreFallbackDisabledError();
+    }
+
+    result = await renewMemberMembershipInFileStore({ memberUuid, planCode });
+    source = "file-store";
+  }
+
+  return {
+    source,
+    result
+  };
 };
 
 const server = http.createServer(async (request, response) => {
@@ -314,6 +504,10 @@ const server = http.createServer(async (request, response) => {
           throw error;
         }
 
+        if (!isFileStoreFallbackAllowed()) {
+          throw createFileStoreFallbackDisabledError();
+        }
+
         candidates = await listFingerprintMatchCandidatesFromFileStore();
         matcherSource = "file-store";
       }
@@ -339,20 +533,22 @@ const server = http.createServer(async (request, response) => {
         }
       }
 
+      const trustedMatchedFingerprintId = resolveTrustedMatchedFingerprintId({
+        matcherResult,
+        probeTemplate,
+        candidates
+      });
+
       const result =
         matcherSource === "postgres"
           ? await resolveFingerprintScanResult({
               scanPayload,
-              matchedFingerprintId: matcherResult.matched
-                ? matcherResult.matchedFingerprintId
-                : null,
+              matchedFingerprintId: trustedMatchedFingerprintId,
               score: matcherResult.bestScore,
               thresholdScore: matcherResult.thresholdScore
             })
           : await resolveFingerprintScanResultFromFileStore({
-              matchedFingerprintId: matcherResult.matched
-                ? matcherResult.matchedFingerprintId
-                : null,
+              matchedFingerprintId: trustedMatchedFingerprintId,
               score: matcherResult.bestScore,
               thresholdScore: matcherResult.thresholdScore
             });
@@ -380,6 +576,7 @@ const server = http.createServer(async (request, response) => {
       scriptPath: SCRIPT_PATH,
       matcherScriptPath: MATCHER_SCRIPT_PATH,
       databaseConfigured: isDatabaseConfigured(),
+      fileStoreFallbackAllowed: isFileStoreFallbackAllowed(),
       fallbackStorePath: STORE_PATH
     });
     return;
@@ -392,6 +589,7 @@ const server = http.createServer(async (request, response) => {
       fingerprintScriptPath: SCRIPT_PATH,
       matcherScriptPath: MATCHER_SCRIPT_PATH,
       databaseConfigured: isDatabaseConfigured(),
+      fileStoreFallbackAllowed: isFileStoreFallbackAllowed(),
       fallbackStorePath: STORE_PATH
     });
     return;
@@ -408,6 +606,10 @@ const server = http.createServer(async (request, response) => {
       } catch (error) {
         if (!isDatabaseUnavailableError(error)) {
           throw error;
+        }
+
+        if (!isFileStoreFallbackAllowed()) {
+          throw createFileStoreFallbackDisabledError();
         }
 
         members = await listMembersFromFileStore(requestedLimit);
@@ -429,36 +631,56 @@ const server = http.createServer(async (request, response) => {
     return;
   }
 
-  if (request.method === "POST" && url.pathname === "/api/members/register-from-scan") {
+  if (
+    request.method === "GET" &&
+    /^\/api\/members\/[^/]+\/renewal-context$/.test(url.pathname)
+  ) {
     try {
+      const memberUuid = decodeURIComponent(
+        url.pathname
+          .slice("/api/members/".length)
+          .replace(/\/renewal-context$/, "")
+      ).trim();
+      const { source, context, plans } =
+        await loadMemberRenewalContextWithFallback(memberUuid);
+
+      json(request, response, 200, {
+        success: true,
+        source,
+        member: context.member,
+        currentPlan: context.currentPlan,
+        metrics: context.metrics,
+        plans
+      });
+    } catch (error) {
+      json(request, response, toServiceStatusCode(error), {
+        success: false,
+        message: error.message
+      });
+    }
+    return;
+  }
+
+  if (
+    request.method === "POST" &&
+    /^\/api\/members\/[^/]+\/renew$/.test(url.pathname)
+  ) {
+    try {
+      const memberUuid = decodeURIComponent(
+        url.pathname.slice("/api/members/".length).replace(/\/renew$/, "")
+      ).trim();
       const body = await readBody(request);
-      const registrationInput = {
-        fullName: body.fullName,
-        mobileNumber: body.mobileNumber,
-        planCode: body.planCode,
-        fingerLabel: body.fingerLabel,
-        scanPayload: body.scanPayload
-      };
-      let result;
-      let source = "postgres";
+      const { source, result } = await renewMemberWithFallback({
+        memberUuid,
+        planCode: body.planCode
+      });
 
-      try {
-        result = await registerMemberFromScan(registrationInput);
-      } catch (error) {
-        if (!isDatabaseUnavailableError(error)) {
-          throw error;
-        }
-
-        result = await registerMemberFromScanToFileStore(registrationInput);
-        source = "file-store";
-      }
-
-      json(request, response, 201, {
+      json(request, response, 200, {
         success: true,
         message:
           source === "postgres"
-            ? "Member registered successfully."
-            : "Member registered successfully using the backend local store.",
+            ? "Membership renewed successfully in PostgreSQL."
+            : "Membership renewed successfully using the backend local store.",
         source,
         ...result
       });
@@ -468,6 +690,21 @@ const server = http.createServer(async (request, response) => {
         message: error.message
       });
     }
+    return;
+  }
+
+  if (request.method === "POST" && url.pathname === "/api/members/register-from-scan") {
+    await handleMemberRegistration(request, response, "Member record");
+    return;
+  }
+
+  if (request.method === "POST" && url.pathname === "/api/members/register-existing-member") {
+    await handleMemberRegistration(request, response, "Existing member registration");
+    return;
+  }
+
+  if (request.method === "POST" && url.pathname === "/api/members/register-new-member") {
+    await handleMemberRegistration(request, response, "New member registration");
     return;
   }
 
@@ -489,6 +726,10 @@ const server = http.createServer(async (request, response) => {
       } catch (error) {
         if (!isDatabaseUnavailableError(error)) {
           throw error;
+        }
+
+        if (!isFileStoreFallbackAllowed()) {
+          throw createFileStoreFallbackDisabledError();
         }
 
         result = await deleteMemberFromFileStore(memberUuid);

@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Add Existing Member</title>
+  <link rel="icon" type="image/svg+xml" href="assets/icons/manlifting.svg">
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body data-fingerprint-api-base="http://localhost:4100" data-scan-mode="capture-save">
+  <div class="app-shell">
+    <aside class="sidebar" data-sidebar>
+      <div class="brand">
+        <div class="brand-mark"><img src="assets/icons/manlifting.svg" alt="GymFlow"></div>
+        <div class="brand-copy">
+          <h1>GymFlow</h1>
+          <p>Membership Command Center</p>
+        </div>
+      </div>
+
+      <div class="sidebar-card">
+        <small>Add Existing Member</small>
+        <strong>SQL Save Flow</strong>
+        <p class="card-subtitle">Capture the fingerprint template, complete the form, and save the member profile through the existing-member registration route.</p>
+      </div>
+
+      <nav class="sidebar-nav">
+        <a class="nav-link" href="index.html"><span class="nav-icon"><img src="assets/icons/dashboard.svg" alt=""></span><span>Fingerprint Verification</span></a>
+        <a class="nav-link" href="monthly-insights.html"><span class="nav-icon"><img src="assets/icons/detect-member.svg" alt=""></span><span>Monthly Insights</span></a>
+        <a class="nav-link active" href="existing-member.html"><span class="nav-icon"><img src="assets/icons/detect-member.svg" alt=""></span><span>Add Existing Member</span></a>
+        <a class="nav-link" href="registration.html"><span class="nav-icon"><img src="assets/icons/register-member.svg" alt=""></span><span>Registration</span></a>
+        <a class="nav-link" href="renew-membership.html"><span class="nav-icon"><img src="assets/icons/renew-membership.svg" alt=""></span><span>Renew Membership</span></a>
+        <a class="nav-link" href="member-list.html"><span class="nav-icon"><img src="assets/icons/member-list.svg" alt=""></span><span>Member List</span></a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <h3>Workflow</h3>
+        <p>1. Check reader. 2. Capture fingerprint. 3. Complete full member details. 4. Save to the existing-member SQL route.</p>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="page">
+        <header class="topbar">
+          <div class="topbar-left">
+            <button class="menu-toggle" data-menu-toggle aria-label="Toggle navigation">☰</button>
+            <div class="page-title">
+              <h2>Add Existing Member</h2>
+              <p>Capture-only fingerprint flow for saving an existing-member registration record, without member or non-member detection.</p>
+            </div>
+          </div>
+          <div class="topbar-actions">
+            <a class="button-ghost" href="member-list.html">Member Directory</a>
+            <a class="button-secondary" href="#existing-member-form-panel">Registration Form</a>
+          </div>
+        </header>
+
+        <section class="section-banner">
+          <h3>Capture Fingerprint Template</h3>
+          <p>This page captures a fingerprint template first, then saves the detailed member form to PostgreSQL through the existing-member registration route when available.</p>
+        </section>
+
+        <section class="grid registration-layout" style="margin-top: 20px;">
+          <article class="card">
+            <div class="card-body">
+              <div class="scanner" data-detection-card>
+                <div class="scanner-head">
+                  <div class="scanner-heading">
+                    <small class="scanner-eyebrow" data-scan-card-kicker>Fingerprint Capture</small>
+                    <h3 class="scanner-title" data-scan-card-title>Ready to capture fingerprint template</h3>
+                    <p class="scanner-summary" data-scan-card-summary>Check the reader, capture the fingerprint template, then save the member details form.</p>
+                  </div>
+                  <span class="scanner-badge" data-scan-feedback-badge>Standby</span>
+                </div>
+                <div class="scanner-grid">
+                  <div class="scanner-detail">
+                    <span>Capture Result</span>
+                    <strong data-scan-card-result>Waiting for fingerprint</strong>
+                  </div>
+                  <div class="scanner-detail">
+                    <span>Save Status</span>
+                    <strong data-scan-card-status>No template saved yet</strong>
+                  </div>
+                  <div class="scanner-detail">
+                    <span>Member Start Date</span>
+                    <strong data-scan-card-expiry>Fill in the form after capture</strong>
+                  </div>
+                  <div class="scanner-detail">
+                    <span>Next Step</span>
+                    <strong data-scan-card-action>Check reader, then capture fingerprint</strong>
+                  </div>
+                </div>
+                <div class="capture-alert capture-alert-info" data-capture-alert>
+                  <div>
+                    <small class="sidebar-label">Fingerprint Template</small>
+                    <h4 data-capture-title>Reader bridge not checked yet</h4>
+                    <p data-capture-text>Use Check Reader first, then press Capture Fingerprint to save the template into this form session.</p>
+                  </div>
+                  <span class="tag tag-primary" data-reader-status>Bridge idle</span>
+                </div>
+                <div class="scanner-dialogs">
+                  <div class="scanner-dialog active" data-scan-inline="ready">
+                    <small class="scanner-dialog-label">Step 1</small>
+                    <h4>Reader check required</h4>
+                    <p>Check the reader first so the page can capture and store a fingerprint template for the member form.</p>
+                  </div>
+                  <div class="scanner-dialog scanner-dialog-warm" data-scan-inline="checking">
+                    <small class="scanner-dialog-label">Checking Reader</small>
+                    <h4>Verifying scanner connection</h4>
+                    <p>The bridge is checking the DigitalPersona reader before capture starts.</p>
+                  </div>
+                  <div class="scanner-dialog scanner-dialog-warm" data-scan-inline="listening">
+                    <small class="scanner-dialog-label">Capture In Progress</small>
+                    <h4>Waiting for finger contact</h4>
+                    <p>Keep the reader clear, then ask the member to touch the scanner once to capture the template.</p>
+                  </div>
+                  <div class="scanner-dialog scanner-dialog-success" data-scan-inline="detected">
+                    <small class="scanner-dialog-label">Template Ready</small>
+                    <h4>Fingerprint template captured</h4>
+                    <p>The fingerprint template is now stored in this page session. Complete the member form and save the record.</p>
+                  </div>
+                  <div class="scanner-dialog scanner-dialog-warm" data-scan-inline="scanning">
+                    <small class="scanner-dialog-label">Saving Record</small>
+                    <h4>Submitting member details</h4>
+                    <p>The member form and captured fingerprint template are being sent to the existing-member registration route.</p>
+                  </div>
+                  <div class="scanner-dialog scanner-dialog-success" data-scan-inline="registered">
+                    <small class="scanner-dialog-label">Save Complete</small>
+                    <h4 data-live-member-name>Nicole Tan</h4>
+                    <p data-live-member-summary>The member record and fingerprint template were saved successfully through the existing-member registration route.</p>
+                    <div class="scanner-inline-list">
+                      <div class="scanner-inline-item">
+                        <span>Member ID</span>
+                        <strong data-live-member-id>GYM-1012</strong>
+                      </div>
+                      <div class="scanner-inline-item">
+                        <span>Access</span>
+                        <strong data-live-member-access>Saved to active member directory</strong>
+                      </div>
+                    </div>
+                    <div class="actions-row" style="margin-top: 14px;">
+                      <a class="button-secondary" href="member-list.html">Open Member Directory</a>
+                    </div>
+                  </div>
+                  <div class="scanner-dialog scanner-dialog-danger" data-scan-inline="missing">
+                    <small class="scanner-dialog-label">No Finger Detected</small>
+                    <h4>Capture did not complete</h4>
+                    <p>No finger contact was detected in time. Clear the reader, then try Capture Fingerprint again.</p>
+                  </div>
+                  <div class="scanner-dialog scanner-dialog-danger" data-scan-inline="error">
+                    <small class="scanner-dialog-label">Capture Error</small>
+                    <h4>Fingerprint capture is unavailable</h4>
+                    <p>The reader bridge did not return a usable template. Check the local bridge and try again.</p>
+                  </div>
+                </div>
+              </div>
+              <div class="scanner-controls">
+                <div class="actions-row">
+                  <button class="button" type="button" data-reader-check>Check Reader</button>
+                  <button class="button-secondary" type="button" data-capture-trigger>Capture Fingerprint</button>
+                  <span class="tag tag-primary" data-scan-label>Ready to capture</span>
+                </div>
+                <p class="helper scanner-helper">Save route: <code>/api/members/register-existing-member</code>. Capture stores the fingerprint template in this session before the form is submitted.</p>
+              </div>
+              <div class="capture-grid" style="margin-top: 16px;">
+                <div class="status-card">
+                  <small class="sidebar-label">Reader Serial</small>
+                  <h4 data-reader-serial>Not detected yet</h4>
+                  <p data-reader-detail>Waiting for the local bridge status check.</p>
+                </div>
+                <div class="status-card">
+                  <small class="sidebar-label">Captured Template</small>
+                  <h4 data-capture-status>No fingerprint captured</h4>
+                  <p data-capture-meta>Capture quality, timestamp, and template readiness will appear here.</p>
+                </div>
+              </div>
+            </div>
+          </article>
+
+          <div class="card-stack">
+            <article class="card" id="existing-member-form-panel">
+              <div class="card-head">
+                <div>
+                  <h3 class="card-title">Existing Member Form</h3>
+                  <p class="card-subtitle">Enter the complete member details, then save the captured fingerprint template with the member record.</p>
+                </div>
+                <span class="tag tag-primary">SQL Route</span>
+              </div>
+              <div class="card-body">
+                <form data-register-member-form data-register-endpoint="/api/members/register-existing-member">
+                  <div class="form-grid">
+                    <div class="field field-span-2">
+                      <label for="existing-member-full-name">Member Name</label>
+                      <input id="existing-member-full-name" name="fullName" type="text" placeholder="Juan Dela Cruz" required>
+                    </div>
+                    <div class="field">
+                      <label for="existing-member-phone">Phone Number</label>
+                      <input id="existing-member-phone" name="mobileNumber" type="tel" placeholder="09171234567" required>
+                    </div>
+                    <div class="field">
+                      <label for="existing-member-start-date">Member Starting Date</label>
+                      <input id="existing-member-start-date" name="startDate" type="date" data-default-start-date required>
+                    </div>
+                    <div class="field">
+                      <label for="existing-member-plan">Membership Plan</label>
+                      <select id="existing-member-plan" name="planCode">
+                        <option value="MONTHLY" selected>Monthly Payment</option>
+                        <option value="DAY_PASS">Single Day Access</option>
+                      </select>
+                    </div>
+                    <div class="field">
+                      <label>Captured Fingerprint</label>
+                      <input type="text" value="Captured from the scanner button" readonly>
+                    </div>
+                  </div>
+                  <div class="actions-row" style="margin-top: 18px;">
+                    <button class="button" type="submit">Save Existing Member</button>
+                    <a class="button-ghost" href="member-list.html">Open Member Directory</a>
+                  </div>
+                  <p class="helper" data-register-member-message style="margin-top: 12px;">Capture a fingerprint before saving the existing-member record.</p>
+                </form>
+              </div>
+            </article>
+
+            <article class="scan-status compact">
+              <div class="status-card status-output active" data-scan-output="ready">
+                <small class="sidebar-label">Save Status</small>
+                <h4>Ready for fingerprint capture</h4>
+                <p>Check the reader, then capture a fingerprint template before submitting the form.</p>
+              </div>
+
+              <div class="status-card status-output" data-scan-output="detected">
+                <small class="sidebar-label">Template Ready</small>
+                <span class="state-badge allowed">Ready to Save</span>
+                <h4>Fingerprint template captured</h4>
+                <p>The template is ready. Review the detailed form, then save the member record to SQL.</p>
+              </div>
+
+              <div class="status-card status-output" data-scan-output="scanning">
+                <small class="sidebar-label">Submitting</small>
+                <h4>Saving existing member record</h4>
+                <p>The page is sending the member details and fingerprint template to the existing-member save route.</p>
+              </div>
+
+              <div class="status-card status-output state-allowed" data-scan-output="registered">
+                <small class="sidebar-label">Save Complete</small>
+                <span class="state-badge allowed">Saved</span>
+                <h4 data-live-member-status-name>Nicole Tan</h4>
+                <p data-live-member-status-summary>The existing-member record has been saved successfully and is ready in the member directory.</p>
+                <div class="actions-row" style="margin-top: 14px;">
+                  <a class="button-secondary" href="member-list.html">Open Member Directory</a>
+                </div>
+              </div>
+
+              <div class="status-card status-output state-denied" data-scan-output="missing">
+                <small class="sidebar-label">Capture Needed</small>
+                <span class="state-badge denied">Retry Required</span>
+                <h4>No fingerprint template saved</h4>
+                <p>Capture the fingerprint again before submitting the existing-member form.</p>
+              </div>
+
+              <div class="status-card status-output state-denied" data-scan-output="error">
+                <small class="sidebar-label">Save Blocked</small>
+                <span class="state-badge denied">Bridge Error</span>
+                <h4>Fingerprint capture is unavailable</h4>
+                <p>The bridge did not return a usable fingerprint template. Fix the bridge, then capture again.</p>
+              </div>
+
+              <div class="card">
+                <div class="card-body">
+                  <small class="sidebar-label">Quick Steps</small>
+                  <div class="list" style="margin-top: 12px;">
+                    <div class="list-row">
+                      <div>
+                        <strong>1. Check reader</strong>
+                        <div class="list-meta">Confirm the DigitalPersona bridge is ready.</div>
+                      </div>
+                      <span class="tag tag-primary">Step 1</span>
+                    </div>
+                    <div class="list-row">
+                      <div>
+                        <strong>2. Capture fingerprint</strong>
+                        <div class="list-meta">Use Capture Fingerprint to store the template in this page session.</div>
+                      </div>
+                      <span class="tag tag-warning">Step 2</span>
+                    </div>
+                    <div class="list-row">
+                      <div>
+                        <strong>3. Save to SQL</strong>
+                        <div class="list-meta">Submit the complete form through the existing-member registration route.</div>
+                      </div>
+                      <span class="tag tag-success">Step 3</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </article>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <div class="modal" data-modal>
+    <div class="modal-panel">
+      <div class="modal-head">
+        <div>
+          <h3 data-modal-title>Member Snapshot</h3>
+          <p>Quick visual overlay for the registration flow.</p>
+        </div>
+        <button class="close-button" type="button" data-modal-close aria-label="Close modal">✕</button>
+      </div>
+      <div class="modal-body" data-modal-body></div>
+      <div class="modal-foot" data-modal-foot>
+        <button class="button-ghost" type="button" data-modal-close>Close</button>
+        <a class="button" href="member-list.html">Open Member Directory</a>
+      </div>
+    </div>
+  </div>
+
+  <script src="assets/js/app.js"></script>
+</body>
+</html>
